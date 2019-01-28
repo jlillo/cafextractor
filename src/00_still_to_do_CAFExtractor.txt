@@ -1,0 +1,53 @@
+==================
+Still to be done
+==================
+
+
+
+
+
+- Improve the number of ThAr lines used in the wavelength calibration
+
+
+
+
+- Check whether the RV calculated is ao¡round the RVmaster. Otherwise a sign must be changed in Line249 in RB07 for the RVdrift.
+
+- Think if we really need the last block of RB07 to measure the arcRVs or if we can directly get them from the RVdrift in the second block…
+
+- Properly estimate the RV uncertainties.
+
+
+
+
+
+
+
+
+==================
+Already done
+==================
+
+- Check the new approach for wavelength calibration (i.e., not determining the wavelength solution for the individual ThAr but only measuring the RV respect to the MasterArc) does not affect the RV measurements. 
+	—> ok! New RV precision is better than before! 9.3 m/s
+
+- in RB07_CrossCorr.AttachWC , merge the two dictionaries Wdict_sci and Wdict_MasterArc so that the science dictionary has all the information about the Wavelength calibration
+	—> done!
+
+- Re-run the ThAr individual wavelength calibration because :
+	* I added a new parameter in the WCdict_arc dictionary. 
+	* I have to join the science and MasterArc dictionaries
+
+- Check if teh inter-night RV differences are caused by the RVinterpolated correction (sciRV) or the MasterArc correction (RVmaster), see plots arcRVs.pdf
+
+- Better clustering of the MasterArc
+	—> Done (see section "Remove clusters with less than 10 members" in FramesClustering at RB03). To be tested in the next test.
+
+- Check dependency of RV with any of the temperatures
+  	—> Done. Does not seem to depend on the temperatures
+
+- Select as MAsterArcs only those clusters with 10 or more frames in a row.
+  	—> Done. At least 10 frames needed to form a MasterFrame. 
+
+- Now checking if changing the order of the polynomial for tracing the orders from 4 to 2 reduces the RV dependency on the SNR. This is because the detector is read in thevertical direction. Consequently a bad order tracing might affect significantly the bright lines, specially at the borders of the CCD, as we see it is the case. 
+	—> no, it does not change the RVs… I also tried order=6 but did not work…

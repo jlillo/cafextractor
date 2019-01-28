@@ -1,0 +1,199 @@
+
+======================================================
+CAFExtractor: a reduction pipeline to make a good CAFE
+======================================================
+Starting the fun... 
+
+========================
+RB00: Setting paths
+======================== 
+
+Root path: /Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/cafextractor/test_data/
+Raw data path: /Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/cafextractor/test_data/00_RAW/
+Night: 120705
+Raw data directory: 120705
+Reduced data path: /Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/cafextractor/test_data/11_REDUCED/
+Reduced data directory: 120705
+Reference Frame directory: /Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/cafextractor/ReferenceFrames/
+ 
+========================
+RB01: Preparing the data
+======================== 
+
++ Duplicating RAW directory...
+    --> Directory not copied. Error: [Errno 17] File exists: '/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/cafextractor/test_data/11_REDUCED/120705'
+    --> 120705 duplicated!
++ Re-naming raw files...
+    --> 120705 renamed!
++ Classifying files and creating frames datacubes...
+    --> flat...ok
+    --> bias...ok
+    --> arcs...ok
+    --> sci...ok
+    --> 120705 classified!
+ 
+========================
+RB02: CAFE checks
+======================== 
+
++ Calculating arc shifts for night 120705...
+    --> ... done!
++ Checking the 2D shift for each arc frame...
+    --> Mean shift of the night (x,y) =  0.482414847358 0.423245693381  pix.
+ 
+========================
+RB03: Master frames
+======================== 
+
++ BIAS
++ FLAT
++ ARCS
++ SCIENCE
+ 
+====================
+RB04: Order tracing 
+==================== 
+
++ Refining ref. flat first order location...
+    --> I found a traces_ref.npz file... loading it!
+    --> First order is order #8 @ y = 144.609 pix.
+    --> delta_Y with ref. flat location = -1.091 pix.
+    --> WARNING: Less orders than Nominal. Adding 4 orders artificially
+(82, 5)
+orders: (1, 82, 5) [82]
++ Tracing orders...
+    --> I found a traces.npz file... loading it!
+orders2: (2,) [91 93]
+    --> Orders traced!
++ Checking orders traced and selecting the nominal CAFE ones...
+    --> First order is order #9 @ y = 145.431 pix.
+    --> delta_Y with ref. flat location = 0.399 pix.
+(82, 5)
+    --> First order is order #9 @ y = 145.744 pix.
+    --> delta_Y with ref. flat location = 0.711 pix.
+(82, 5)
+orders3: (2, 82, 5) [82, 82]
+ 
+=================================
+RB05: Flat order & normalization 
+================================= 
+
++ Creating the scattered light maps for each MasterFlat and substracting...
+    --> Scattered light map for MasterFlat_0
+       -> I found a saved Background file for MasterFlat_0.fits. Loading the map...
+    --> Scattered light map for MasterFlat_1
+       -> I found a saved Background file for MasterFlat_1.fits. Loading the map...
++ Get P matrix...
+    --> MasterFlat #0 order extraction
+    ===> Calculating P...
+    --> MasterFlat #1 order extraction
+    ===> Calculating P...
++ Extracting the MasterFlat orders...
++ Normalizing the extracted MasterFlat...
+    ===> Normalizing Flat...
+    ===> Normalizing Flat...
++ Saving Normalized flat spectra...
+ 
+==============================================
+RB05: Arcs+Science - extraction and analysis  
+============================================== 
+
++ Computing background for arc images...
+    --> Scattered light map for arc__120705_0011.fits
+       -> I found a saved Background file for arc__120705_0011.fits. Loading the map...
+    --> Scattered light map for arc__120705_0012.fits
+       -> I found a saved Background file for arc__120705_0012.fits. Loading the map...
+    --> Scattered light map for arc__120705_0013.fits
+       -> I found a saved Background file for arc__120705_0013.fits. Loading the map...
+    --> Scattered light map for arc__120705_0014.fits
+       -> I found a saved Background file for arc__120705_0014.fits. Loading the map...
+    --> Scattered light map for arc__120705_0015.fits
+       -> I found a saved Background file for arc__120705_0015.fits. Loading the map...
+    --> Scattered light map for arc__120705_0021.fits
+       -> I found a saved Background file for arc__120705_0021.fits. Loading the map...
+    --> Scattered light map for arc__120705_0023.fits
+       -> I found a saved Background file for arc__120705_0023.fits. Loading the map...
+    --> Scattered light map for arc__120705_0034.fits
+       -> I found a saved Background file for arc__120705_0034.fits. Loading the map...
+    --> Scattered light map for arc__120705_0035.fits
+       -> I found a saved Background file for arc__120705_0035.fits. Loading the map...
+    --> Scattered light map for arc__120705_0036.fits
+       -> I found a saved Background file for arc__120705_0036.fits. Loading the map...
+    --> Scattered light map for arc__120705_0037.fits
+       -> I found a saved Background file for arc__120705_0037.fits. Loading the map...
+    --> Scattered light map for arc__120705_0038.fits
+       -> I found a saved Background file for arc__120705_0038.fits. Loading the map...
+    --> Scattered light map for MasterArc_0.fits
+       -> I found a saved Background file for MasterArc_0.fits. Loading the map...
+    --> Scattered light map for MasterArc_1.fits
+       -> I found a saved Background file for MasterArc_1.fits. Loading the map...
+    --> Scattered light map for MasterArc_2.fits
+       -> I found a saved Background file for MasterArc_2.fits. Loading the map...
++ Extracting arc images...
++ Extracting Master Arc images...
++ Computing background for sci images...
+    --> Scattered light map for HD109358__120705_0016.fits
+       -> I found a saved Background file for HD109358__120705_0016.fits. Loading the map...
+    --> Scattered light map for HD109358__120705_0017.fits
+       -> I found a saved Background file for HD109358__120705_0017.fits. Loading the map...
+    --> Scattered light map for HD109358__120705_0018.fits
+       -> I found a saved Background file for HD109358__120705_0018.fits. Loading the map...
+    --> Scattered light map for HD109358__120705_0019.fits
+       -> I found a saved Background file for HD109358__120705_0019.fits. Loading the map...
+    --> Scattered light map for HD109358__120705_0020.fits
+       -> I found a saved Background file for HD109358__120705_0020.fits. Loading the map...
+    --> Scattered light map for HD124292__120705_0022.fits
+       -> I found a saved Background file for HD124292__120705_0022.fits. Loading the map...
++ Extracting sci images...
+==========================================
+RB06: MasterArcs - Wavelength calibration 
+========================================== 
+
++ Wavelength solution for each MasterArc
+       -> MasterArc_0.fits...already extracted!
+       -> MasterArc_1.fits...already extracted!
+       -> MasterArc_2.fits...already extracted!
+========================================
+RB07: Arcs - RVs || Science - Attach WC 
+======================================== 
+
++ Radial velocity of the Master Arc
+    --> ThAr RVs found. Loading values...
++ Attach drift-corrected wavelength calibration to arcs
+    --> Drift-correct w_arcs found. Loading frames...
++ Measuring the RV of the individual arcs
+    --> ThAr RVs found. Loading values...
++ Attach closest wavelength solution for each Science file and correct from Rvs
+     --> WARNING: getting RA/DEC from POSTN-RA/POSTN-DE header keywords!: RA=188.441666667 DEC=41.3597222222
+     --> WARNING: getting RA/DEC from POSTN-RA/POSTN-DE header keywords!: RA=188.441666667 DEC=41.3597222222
+     --> WARNING: getting RA/DEC from POSTN-RA/POSTN-DE header keywords!: RA=188.441666667 DEC=41.3597222222
+     --> WARNING: getting RA/DEC from POSTN-RA/POSTN-DE header keywords!: RA=188.441666667 DEC=41.3597222222
+     --> WARNING: getting RA/DEC from POSTN-RA/POSTN-DE header keywords!: RA=188.441666667 DEC=41.3597222222
+     --> WARNING: getting RA/DEC from POSTN-RA/POSTN-DE header keywords!: RA=213.191666667 DEC=-3.3175
+========================================
+RB08: Science - Radial velocity 
+======================================== 
+
++ Calculating RVs for the science frames...
+    --> Science RVs found. Loading dictionaries...
+6.504 12.4161903833
+==========================================
+RB09: Science - Spec Norm. & CCF analysis 
+========================================== 
+
++ 
+9.38958721986
+20.6300751332
+[22.63656019 22.96466385 23.933643   20.59431877 20.93733709]
+========================================
+RB10: Saving the FINAL results 
+======================================== 
+
++ Saving arc reduced frames...
++ Saving science reduced frames...
+     --> WARNING: getting RA/DEC from POSTN-RA/POSTN-DE header keywords!: RA=188.441666667 DEC=41.3597222222
+     --> WARNING: getting RA/DEC from POSTN-RA/POSTN-DE header keywords!: RA=188.441666667 DEC=41.3597222222
+     --> WARNING: getting RA/DEC from POSTN-RA/POSTN-DE header keywords!: RA=188.441666667 DEC=41.3597222222
+     --> WARNING: getting RA/DEC from POSTN-RA/POSTN-DE header keywords!: RA=188.441666667 DEC=41.3597222222
+     --> WARNING: getting RA/DEC from POSTN-RA/POSTN-DE header keywords!: RA=188.441666667 DEC=41.3597222222
+     --> WARNING: getting RA/DEC from POSTN-RA/POSTN-DE header keywords!: RA=213.191666667 DEC=-3.3175
