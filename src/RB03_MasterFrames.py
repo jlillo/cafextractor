@@ -94,7 +94,6 @@ def FrameCombine(frames,frames_cl,cv,biasList='None',biasFrames='None'):
 				elem = CAFEutilities.get_closer_frame(frames['jd'][i],biasList['centers'])
 				zero = biasFrames[elem]
 				ClippedFrames[i,:,:] -= zero[0,:,:]
-			print nframes
 			if nframes > CS.MinMembersFlat: #len(ClippedFrames[:,0,0])
 				MF = np.median(ClippedFrames,axis=0)
 				MasterFrame.append(MF)

@@ -46,8 +46,6 @@ def GetBackgroundFrame(o_coeff,Nord,Frames,Frames_dict,flat_cl,cv,names):
 		if os.path.isfile(cv.aux_dir+'Background_'+names[ii]) == False:
 			this = CAFEutilities.get_closer_frame(Frames_dict['jd'][ii],flat_cl['centers'])[0]
 			#print "    ===> Creating a new map for "+names[ii]+"..."
-			print this,np.shape(o_coeff)
-			print Fr.shape
 			Centers = np.zeros((len(o_coeff[this]),Fr.shape[1]))
 			for jj in range(Nord[this]):
 				Centers[jj,:]=scipy.polyval(o_coeff[this][jj,:],np.arange(len(Centers[jj,:])))

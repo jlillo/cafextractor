@@ -64,11 +64,14 @@ def create_dvel(inst,w,RVguess=0.0,RVampl=100.,verbose=False):
 	# ===== Velocity array of the CCF
 	vmin 	= RVguess-RVampl
 	vmax 	= RVguess+RVampl
+	if ~np.isfinite(Vscale): Vscale = 4.54 # km/s
 	vwidth  = Vscale/2.2/2. 			# km/s  
 	vstep 	= vwidth/2. 
 	dlogLambda 	= vwidth/cc 
-	if ~np.isfinite(vmin):
+	
+	if ((~np.isfinite(RVguess)) | (~np.isfinite(RVampl))):
 		vmin, vmax = -100, 100
+
 	dvel = np.linspace(vmin,vmax,(vmax-vmin)/vstep)
 
 	return dvel,vwidth

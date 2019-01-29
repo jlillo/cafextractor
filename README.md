@@ -10,7 +10,7 @@ Version: v0.1
 - RV dependency with S/N: there is a stron dependency of RV with the S/N of the spectrum. Under investigation.
 - Order normalization: Orders #X and #Y have a very bad normalization due to the strong atmospheric absorption at those wavelengths.
 - Order merging: to be optimized
-
+- Create IRAF-readable reduced spectra files (also MIDAS if possible)
 
 **Usage**
 

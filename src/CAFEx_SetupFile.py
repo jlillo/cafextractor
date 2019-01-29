@@ -4,9 +4,9 @@
 # root		=	'/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/test_data/'
 # raw			=	'/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/test_data/00_RAW/'
 # redfolder	=	'/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/test_data/12_REDUCED/'
-root		=	'/Volumes/willyfog/gang5/jlillo/02_CAFE_RUNS/OCCASO/'
-raw			=	'/Volumes/willyfog/gang5/jlillo/02_CAFE_RUNS/OCCASO/00_RAW/'
-redfolder	=	'/Volumes/willyfog/gang5/jlillo/02_CAFE_RUNS/OCCASO/11_REDUCED/'
+root		=	'/Volumes/willyfog/gang5/jlillo/22_RUNS/2019_01_CAHA_2.2_CAFE_Recommisioning_Run2/'
+raw			=	'/Volumes/willyfog/gang5/jlillo/22_RUNS/2019_01_CAHA_2.2_CAFE_Recommisioning_Run2/00_RAW/'
+redfolder	=	'/Volumes/willyfog/gang5/jlillo/22_RUNS/2019_01_CAHA_2.2_CAFE_Recommisioning_Run2/11_REDUCED/'
 RefFrames	=	'/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/cafextractor/ReferenceFrames/'
 
 RefArc		=	'arc__180718_0031.fits'

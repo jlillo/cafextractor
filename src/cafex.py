@@ -435,8 +435,10 @@ if __name__ == "__main__":
 # 		tab = np.load(cv.aux_dir+'arc_RVs.npz')
 # 		arcRVs = tab['arcRVs']
 
-	if 1:
+	try:
 		RB07.plot_ArcRV(sci, arcs, arcRVs, arcs_cl, MasterRVs, cv)
+	except: 
+		print "---> WARNING: Could not plot the ArcRVs... (probably some are NaN)"
 	
 	print "+ Attach closest wavelength solution for each Science file and correct from RVs"
 	w_sci, WCdicts_sci = RB07.AttachWC(x_sci, sci, sci_names, 

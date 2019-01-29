@@ -68,9 +68,19 @@ def mjd_fromheader(h):
 
 def simbad_query_radec(obname):
 	res = Simbad.query_object(obname)
-	c = coordinates.SkyCoord(ra='%sh%sm%ss' % tuple(str(res["RA"][0]).split(' ')), 
-							 dec='%sd%sm%ss' % tuple(str(res["DEC"][0]).split(' ')),
+	SimRA 	= tuple(str(res["RA"][0]).split(' '))
+	SimDEC 	= tuple(str(res["DEC"][0]).split(' '))
+
+	if len(SimRA) == 2:
+		SimRA = (SimRA[0], str(int(np.floor(np.float(SimRA[1])))).zfill(2), str(int(np.float(SimRA[1]) % np.floor(np.float(SimRA[1])) )).zfill(2)   )
+
+	if len(SimDEC) == 2:
+		SimDEC = (SimDEC[0], str(int(np.floor(np.float(SimDEC[1])))).zfill(2), str(int(np.float(SimDEC[1]) % np.floor(np.float(SimDEC[1])) )).zfill(2)   )
+
+	c = coordinates.SkyCoord(ra='%sh%sm%ss' % SimRA, 
+							 dec='%sd%sm%ss' % SimDEC,
 							 frame='icrs')
+	
 	return c.ra.deg, c.dec.deg
 
 
@@ -173,8 +183,8 @@ def get_berv(hdr):
 		ra, dec = simbad_query_radec(obname)
 		coord_flag = 'Simbad'
 	except:
-		ra  = np.float(hdr["POSTN-RA"])/60./60.
-		dec = np.float(hdr["POSTN-DE"])/60./60.
+		ra  = np.float(hdr["RA"])/60./60.
+		dec = np.float(hdr["DEC"])/60./60.
 		coord_flag = 'Telescope'
 		print "     --> WARNING: getting RA/DEC from POSTN-RA/POSTN-DE header keywords!: RA="+str(ra)+" DEC="+str(dec)
 
