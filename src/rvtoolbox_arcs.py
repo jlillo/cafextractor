@@ -39,7 +39,7 @@ def closest(array,value):
 # ======================================
 #		Velocity array
 # ======================================
-def create_dvel(inst,w,RVguess=0.0,RVampl=100.,verbose=False):
+def create_dvel(inst,w,RVguess=0.0,RVampl=15.,verbose=False):
 	
 	# ===== CARMENES visible arm
 	if inst == 'CAFE':
@@ -48,7 +48,7 @@ def create_dvel(inst,w,RVguess=0.0,RVampl=100.,verbose=False):
 			RR.append(w[oo,1:-1]/(w[oo,1:-1]-w[oo,0:-2]))
 		RR = np.array(RR)
 		R = np.nanmean(RR)/2.2
-		Vscale = cc/np.nanmean(RR)
+		Vscale = cc/np.nanmean(R)
 		if verbose:
 			print "Measured spectral resolution, R = ", np.str(np.round(R))
 			print "Measured spectral resolution, Vscale = ", np.str(cc/R),' km/s'
@@ -56,7 +56,6 @@ def create_dvel(inst,w,RVguess=0.0,RVampl=100.,verbose=False):
 	else:
 		RR = w[1:-1]/(w[1:-1]-w[0:-2])
 		R = np.mean(RR)/3.
-		print R
 		Vscale = cc/R
 		if verbose:
 			print "Measured spectral resolution, R = ", np.str(np.round(R))
@@ -65,9 +64,14 @@ def create_dvel(inst,w,RVguess=0.0,RVampl=100.,verbose=False):
 	# ===== Velocity array of the CCF
 	vmin 	= RVguess-RVampl
 	vmax 	= RVguess+RVampl
-	vwidth  = Vscale 			# km/s  
+	if ~np.isfinite(Vscale): Vscale = 4.54 # km/s
+	vwidth  = Vscale/2.2/2. 			# km/s   
 	vstep 	= vwidth/2. 
 	dlogLambda 	= vwidth/cc 
+	
+	if ((~np.isfinite(RVguess)) | (~np.isfinite(RVampl))):
+		vmin, vmax = -100, 100
+
 	dvel = np.linspace(vmin,vmax,(vmax-vmin)/vstep)
 
 	return dvel,vwidth
@@ -83,10 +87,12 @@ def fit_CCF(dvel,CCF,eCCF, guessRV=True, with_Moon=False):
 		try:
 			if guessRV == True:
 				RVguess = (np.max(dvel)+np.min(dvel))/2.
-				mybounds = ([-np.inf, RVguess-5., 0.0, -np.inf], [0, RVguess+5., 100., np.inf])
+				#mybounds = ([0.0, RVguess-5., 0.0, -np.inf, -np.inf, -np.inf], [np.inf, RVguess+5., 100., np.inf, np.inf, np.inf])
+				mybounds = ([0.0, RVguess-5., 0.0, -np.inf], [np.inf, RVguess+5., 5., np.inf])
 			else:
-				mybounds = ([-np.inf, np.min(dvel), 0.0, -np.inf], [0, np.max(dvel), 100., np.inf])
-			myp0 = [np.min(CCF)-np.median(CCF), dvel[np.argmin(CCF)], 10., np.median(CCF)]
+				#mybounds = ([0.0, np.min(dvel), 0.0, -np.inf, -np.inf, -np.inf], [np.inf, np.max(dvel), 100., np.inf, np.inf, np.inf])
+				mybounds = ([0.0, np.min(dvel), 0.0, -np.inf], [np.inf, np.max(dvel), 5., np.inf])
+			myp0 = [np.max(CCF)-np.median(CCF), dvel[np.argmax(CCF)], 2., np.median(CCF)]
 		
 			popt, pcov = curve_fit(gaussfit, dvel, CCF, p0 = myp0, bounds = mybounds) #, sigma=eCCF
 			perr = np.sqrt(np.diag(pcov))
@@ -127,12 +133,15 @@ def fit_CCF(dvel,CCF,eCCF, guessRV=True, with_Moon=False):
 #		CCF determination
 # ======================================
 
-def CCF(w,f,ef,dvel,vwidth, wmask, fmask):
+def CCF(w,f,ef,dvel,vwidth, wmask, fmask, CRAYS=False):
 
 	# Mask cosmic rays
-	CRs = np.where(f > np.nanmedian(f)+20.*sigmaG(f[~np.isnan(f)]))[0]
-	#print np.nanmedian(f),sigmaG(f[~np.isnan(f)]),np.nanmedian(f)+20.*sigmaG(f[~np.isnan(f)])
-	f[CRs] = np.nan	
+	#if CRAYS == True:
+# 	CRs = np.where(f > np.nanmedian(f)+20.*sigmaG(f[~np.isnan(f)]))[0]
+# 	plt.plot(w,f)
+# 	plt.plot(w[CRs],f[CRs],c='red')
+# 	f[CRs] = np.nan	
+# 	plt.plot(w,f)
 	
 	# Mask Tellurics
 	#tellmask = interp(lam2wave(mask[:,0]), mask[:,1])
@@ -154,6 +163,10 @@ def CCF(w,f,ef,dvel,vwidth, wmask, fmask):
 	inrange = np.where((wmask*(1.+vmin/cc) > np.min(w)+2. ) & (wmask*(1.+vmax/cc) < np.max(w)-2. ))[0]
 	wmaskR = wmask[inrange]
 	fmaskR = fmask[inrange]
+
+# 	for i in wmaskR: plt.axvline(i,c='k',ls=':')
+# 	plt.show()
+
 
 	CCF  = np.zeros(len(dvel))
 	eCCF  = np.zeros(len(dvel))
@@ -222,6 +235,7 @@ def CCF(w,f,ef,dvel,vwidth, wmask, fmask):
 		#plt.plot(dvel,gaussfit(dvel,*popt))
 		plt.show()
 		plt.close()
+		sys.exit()
 
 	return CCF,eCCF#,RV,eRV, dvel, popt, perr
 

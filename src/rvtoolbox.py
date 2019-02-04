@@ -131,12 +131,14 @@ def fit_CCF(dvel,CCF,eCCF, guessRV=True, with_Moon=False):
 #		CCF determination
 # ======================================
 
-def CCF(w,f,ef,dvel,vwidth, wmask, fmask):
+def CCF(w,f,ef,dvel,vwidth, wmask, fmask, CRAYS=True):
 
 	# Mask cosmic rays
-	CRs = np.where(f > np.nanmedian(f)+20.*sigmaG(f[~np.isnan(f)]))[0]
+	if CRAYS == True:
+		CRs = np.where(f > np.nanmedian(f)+20.*sigmaG(f[~np.isnan(f)]))[0]
+		f[CRs] = np.nan	
+	
 	#print np.nanmedian(f),sigmaG(f[~np.isnan(f)]),np.nanmedian(f)+20.*sigmaG(f[~np.isnan(f)])
-	f[CRs] = np.nan	
 	
 	# Mask Tellurics
 	#tellmask = interp(lam2wave(mask[:,0]), mask[:,1])

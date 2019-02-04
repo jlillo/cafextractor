@@ -27,36 +27,44 @@ import ntpath
 # ========================================================================================
 
 def get_RV(sp,inst, wmask, sel_orders=-10, guessRV=True, with_Moon = False, plot_name='tmp.pdf'):
-	print with_Moon
 
-	# Orders exclude (CARMENES-wise)
-	# exclude_orders = [29, 30, 38, 39, 43, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61]
+	# Orders exclude (show no relevant information and possible blended intense lines)
+	#exclude_orders = [27,29,30,31,50,52,55,61,69,72,74,83,   44,28,41,46,34,79,47,39,26,25,75,42,45]
+	exclude_orders = [27,29,30,32,40,41,44,46,50,53,54,71]
 
 	# Data properties
 	nexten,norders,npix = np.shape(sp)
-	sel_orders = np.arange(norders)
+	sel_orders = np.arange(norders-23)+23
+	
+	_sel_orders_list = list(sel_orders)
+	for i in exclude_orders: _sel_orders_list.remove(i)
+	sel_orders = np.array(_sel_orders_list)
 		
+	
 	wave = sp[3,:,300:-300]
 	flux = sp[1,:,300:-300]
 	eflux = sp[2,:,300:-300]
 
 	# Mask
-	fmask = wmask*0.0 - 1.0
+	fmask = wmask*0.0 + 1.0
 	fwhm_mask = wmask*0.0 + 4.0
 
 	# ==============================
 	# 	RV first guess
 	# ==============================
-	dvel, vwidth = rvtbx.create_dvel(inst,wave,RVguess=0.0,RVampl=200.,verbose=True)
-	if norders > 1:
-		test_order = 36
-		w, f, ef 	= wave[test_order,:], flux[test_order,:], eflux[test_order,:]
-	else:
-		w, f, ef 	= wave, flux, eflux 
+	if guessRV == True:
+		dvel, vwidth = rvtbx.create_dvel(inst,wave,RVguess=0.0,RVampl=200.,verbose=True)
+		if norders > 1:
+			test_order = 36
+			w, f, ef 	= wave[test_order,:], flux[test_order,:], eflux[test_order,:]
+		else:
+			w, f, ef 	= wave, flux, eflux 
 
-	CCFo,eCCFo = rvtbx.CCF(w,f,ef,dvel,vwidth, wmask, fmask)
-	popt, perr = rvtbx.fit_CCF(dvel,CCFo,eCCFo,guessRV=False, with_Moon = False)
-	RVguess = popt[1]
+		CCFo,eCCFo = rvtbx.CCF(w,f,ef,dvel,vwidth, wmask, fmask)
+		popt, perr = rvtbx.fit_CCF(dvel,CCFo,eCCFo,guessRV=False, with_Moon = False)
+		RVguess = popt[1]
+	else:
+		RVguess = 0.0
 	print "Estimated RV (no BERV corrected) = ",np.str(round(RVguess,3))," km/s"
 
 	# ==============================
@@ -68,7 +76,7 @@ def get_RV(sp,inst, wmask, sel_orders=-10, guessRV=True, with_Moon = False, plot
 	FWHMall, eFWHMall 		= [], []
 	Heightall, eHeightall 	= [], []
 	snrall 					= []
-	dvel, vwidth = rvtbx.create_dvel(inst,wave,RVguess=RVguess,RVampl=70.)
+	dvel, vwidth = rvtbx.create_dvel(inst,wave,RVguess=RVguess,RVampl=15.)
 
 	print "Calculating CCF..."
 
@@ -90,7 +98,7 @@ def get_RV(sp,inst, wmask, sel_orders=-10, guessRV=True, with_Moon = False, plot
 		w,f, ef = wave[oo,no_overlap], flux[oo,no_overlap], eflux[oo,no_overlap]
 		
 		if ((np.count_nonzero(f) !=0) & (np.count_nonzero(~np.isnan(f)) != 0)):
-			CCFo,eCCFo   = rvtbx.CCF(w,f,ef,dvel,vwidth, wmask, fmask)
+			CCFo,eCCFo   = rvtbx.CCF(w,f,ef,dvel,vwidth, wmask, fmask, CRAYS=False)
 			popto, perro = rvtbx.fit_CCF(dvel,CCFo,eCCFo, guessRV=guessRV, with_Moon = with_Moon)
 		else:
 			CCFo,eCCFo = np.zeros(len(dvel)), np.zeros(len(dvel))
@@ -103,17 +111,18 @@ def get_RV(sp,inst, wmask, sel_orders=-10, guessRV=True, with_Moon = False, plot
 		eRVall.append(perro[1])	
 		FWHMall.append(popto[2]*2.*np.sqrt(2.*np.log(2.)))	
 		eFWHMall.append(perro[2]*2.*np.sqrt(2.*np.log(2.)))	
-		Heightall.append(popto[0]/popto[3])	
-		eHeightall.append(perro[0]/popto[3])	
+		Heightall.append(popto[0])	
+		eHeightall.append(perro[0])	
 
+	
+	
 	CCFall, eCCFall = np.array(CCFall), np.array(eCCFall)
 	RVall, eRVall 	= np.array(RVall), np.array(eRVall)
-
+	#for ttt in range(len(sel_orders)): print sel_orders[ttt],RVall[ttt],eRVall[ttt] 
 
 	# ===== CCF stacking of all orders
-	CCF  = np.sum(CCFall,axis=0)
-	eCCF = np.sqrt(np.sum(eCCFall**2,axis=0))
-	
+	CCF  = np.nansum(CCFall,axis=0)
+	eCCF = np.sqrt(np.nansum(eCCFall**2,axis=0))
 
 	# ===== Gaussian fit to the stacked CCF
 	print "Measuring RV from CCF..."
@@ -125,7 +134,23 @@ def get_RV(sp,inst, wmask, sel_orders=-10, guessRV=True, with_Moon = False, plot
 	RV 		= popt[1]
 	eRV 	= perr[1]
 
-	if 1:
+#	print RV, eRV
+# 	plt.plot(dvel,CCF)
+# 	plt.plot(dvel,rvtbx.gaussfit(dvel,*popt),ls='--',c='red')
+# 	for i in range(len(sel_orders)): plt.plot(dvel,CCFall[i,:])
+# 	np.savez('tmp_ccf',dvel=dvel,CCFall=CCFall,CCF=CCF)
+# 	plt.show()
+# 	sys.exit()
+
+	# ===== RV uncertainty from Boisse et al. (2010)
+	deriva = np.gradient(CCF,dvel)
+	Nscale = 0.25 # pix # np.sqrt(np.nanmean(np.diff(dvel))   )
+	Q_CCF = np.sqrt(np.nansum(deriva**2/CCF)) / np.sqrt(np.nansum(CCF)) * np.sqrt(Nscale)
+	eRV2 = 1./(Q_CCF*np.sqrt(np.nansum(CCF)))
+
+	print RV, eRV, eRV2
+
+	try:
 		fig = plt.figure(figsize=(12,8))
 		gs = gridspec.GridSpec(3,2, height_ratios=[1.,1.,1.], width_ratios=[1,1])
 		gs.update(left=0.1, right=0.95, bottom=0.08, top=0.93, wspace=0.08, hspace=0.08)
@@ -158,9 +183,11 @@ def get_RV(sp,inst, wmask, sel_orders=-10, guessRV=True, with_Moon = False, plot
 
 		plt.savefig(plot_name)
 		plt.close()
+	except:
+		print "No RV plot for this frame..."
 
 	
-	return RV, eRV, popt, perr, RVall, eRVall
+	return RV, eRV, popt, perr, RVall, eRVall, eRV2
 
 
 # ========================================================================================
@@ -191,7 +218,7 @@ def ArcRV(frames, cv, frame_names):
 	eRVs = []
 
 	for i,frame in enumerate(frames):
-		RV, eRV, popt, perr, _, _ = get_RV(frame, inst, wmask, with_Moon = False, plot_name=cv.aux_dir+'/RV_'+frame_names[i]+'.pdf')
+		RV, eRV, popt, perr, _, _, _ = get_RV(frame, inst, wmask, with_Moon = False, plot_name=cv.aux_dir+'/RV_'+frame_names[i]+'.pdf')
 		RVs.append(RV)
 		eRVs.append(eRV)
 		print RV,eRV
@@ -210,12 +237,15 @@ def AttachWC_arcs(x_arc,arcs,arc_names,					# Individual arc frames
 	
 	# ===== Preparing the correlation:
 	# ThAr lines mask from Lovis+2007:
-	ThArMask = np.genfromtxt(cv.ref_frames+'ThAr_ReferenceLines/ThAr_Lovis07.txt',dtype=None)
-	wmask_vaccuum = ThArMask["f0"]
-	s = 1.e4/wmask_vaccuum
-	n = 1 + 0.0000834254 + 0.02406147 / (130 - s**2) + 0.00015998 / (38.9 - s**2)
-	wmask = wmask_vaccuum/n
-
+# 	ThArMask = np.genfromtxt(cv.ref_frames+'ThAr_ReferenceLines/ThAr_Lovis07.txt',dtype=None)
+# 	wmask_vaccuum = ThArMask["f0"]
+# 	s = 1.e4/wmask_vaccuum
+# 	n = 1 + 0.0000834254 + 0.02406147 / (130 - s**2) + 0.00015998 / (38.9 - s**2)
+# 	wmask = wmask_vaccuum/n
+	
+	ThArMask = np.genfromtxt('ThAr_for_RV.dat',dtype=None,names=True)
+	wmask = ThArMask["wmask"]
+		
 	inst = 'CAFE'
 	RVguess = 0.0	
 
@@ -246,9 +276,20 @@ def AttachWC_arcs(x_arc,arcs,arc_names,					# Individual arc frames
 		w_arc_tmp = np.append(arcFr,wnew,axis=0)
 		
 		# ===== Measure the RV
-		RV, eRV, popt, perr, _, _ = get_RV(w_arc_tmp, inst, wmask, with_Moon = False, plot_name=cv.aux_dir+'/RV_'+arc_names[i]+'.pdf')
+		already_done = os.path.isfile(cv.aux_dir+'RVdict_'+arc_names[i]+'.npz')
+		if already_done == False:
+			RV, eRV, popt, perr, _, _, eRV2 = get_RV(w_arc_tmp, inst, wmask, guessRV = False, with_Moon = False, plot_name=cv.aux_dir+'/RV_'+arc_names[i]+'.pdf')
+			np.savez(cv.aux_dir+'RVdict_'+arc_names[i],RV=RV,eRV=eRV,eRV2=eRV2)
+		else:
+			print "    --> RVdict found for "+arc_names[i]+". Loading..."
+			load_res = np.load(cv.aux_dir+'RVdict_'+arc_names[i]+'.npz')
+			RV = load_res["RV"]
+			eRV = load_res["eRV"]
+			eRV2 = load_res["eRV2"]
+		
+		
+		
 		#RV = RVs[i]
-		print RV
 		
 		# ===== Attach RV-corrected wavelength solution:
 		RVdrift = -(RV-MasterRVs[0][Selected_MasterARC])
@@ -266,7 +307,9 @@ def AttachWC_arcs(x_arc,arcs,arc_names,					# Individual arc frames
 					'RV_MasterARC':MasterRVs[0][Selected_MasterARC],
 					'RVdrift':RVdrift*1.e3,
 					'RVfromMaster':RV,
-					'eRVfromMaster':eRV
+					'eRVfromMaster':eRV,
+					'eRVBoisse':eRV2,
+					'jd':arcs["jd"][i]
 					}
 		WCdicts_arc.append(WCdict_arc)
 	
