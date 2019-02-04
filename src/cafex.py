@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
 	args = cli()
 
-	pipeversion = 'v0.1'	# As in Github repository
+	pipeversion = 'v0.2'	# As in Github repository
 	
 	print ""
 	print "============================================================"
