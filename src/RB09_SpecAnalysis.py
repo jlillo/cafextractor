@@ -47,12 +47,16 @@ def spec_norm(w_frames, cv, frame_names):
 				myflux_all[oo,:] = myflux
 			
 				if np.count_nonzero(~np.isnan(myflux)) != 0:
-					coeff = np.polyfit(wave[oo,~np.isnan(myflux)],myflux[~np.isnan(myflux)],2)
-					p = np.poly1d(coeff)
-					norm[oo,:] = p(wave[oo,:])
-					fnorm[oo,:] = flux[oo,:]/norm[oo,:]
-					efnorm[oo,:] = eflux[oo,:]/norm[oo,:]
-		
+					try:
+						coeff = np.polyfit(wave[oo,~np.isnan(myflux)],myflux[~np.isnan(myflux)],2)
+						p = np.poly1d(coeff)
+						norm[oo,:] = p(wave[oo,:])
+						fnorm[oo,:] = flux[oo,:]/norm[oo,:]
+						efnorm[oo,:] = eflux[oo,:]/norm[oo,:]
+					except:
+						fnorm[oo,:] = flux[oo,:]/np.nanmean(flux[oo,:])
+						efnorm[oo,:] = eflux[oo,:]/np.nanmean(flux[oo,:])
+						
 		
 		snr = snr_oo[CS.ordID_5500]
 		
