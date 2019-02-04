@@ -204,12 +204,15 @@ def ArcRV(frames, cv, frame_names):
 	#wmask = ThArMask["f2"]
 	
 	# From Lovis+2007:
-	ThArMask = np.genfromtxt(cv.ref_frames+'ThAr_ReferenceLines/ThAr_Lovis07.txt',dtype=None)
-	wmask_vaccuum = ThArMask["f0"]
-	s = 1.e4/wmask_vaccuum
-	n = 1 + 0.0000834254 + 0.02406147 / (130 - s**2) + 0.00015998 / (38.9 - s**2)
-	wmask = wmask_vaccuum/n
+# 	ThArMask = np.genfromtxt(cv.ref_frames+'ThAr_ReferenceLines/ThAr_Lovis07.txt',dtype=None)
+# 	wmask_vaccuum = ThArMask["f0"]
+# 	s = 1.e4/wmask_vaccuum
+# 	n = 1 + 0.0000834254 + 0.02406147 / (130 - s**2) + 0.00015998 / (38.9 - s**2)
+# 	wmask = wmask_vaccuum/n
 	
+	ThArMask = np.genfromtxt('ThAr_for_RV.dat',dtype=None,names=True)
+	wmask = ThArMask["wmask"]
+
 	inst = 'CAFE'
 	
 	RVguess = 0.0	
@@ -218,7 +221,7 @@ def ArcRV(frames, cv, frame_names):
 	eRVs = []
 
 	for i,frame in enumerate(frames):
-		RV, eRV, popt, perr, _, _, _ = get_RV(frame, inst, wmask, with_Moon = False, plot_name=cv.aux_dir+'/RV_'+frame_names[i]+'.pdf')
+		RV, eRV, popt, perr, _, _, _ = get_RV(frame, inst, wmask, guessRV = False, with_Moon = False, plot_name=cv.aux_dir+'/RV_'+frame_names[i]+'.pdf')
 		RVs.append(RV)
 		eRVs.append(eRV)
 		print RV,eRV
