@@ -18,6 +18,7 @@ from astropy.io import ascii
 import sys
 import rvtoolbox as rvtbx
 import matplotlib.gridspec as gridspec # GRIDSPEC !
+from matplotlib.pyplot import cm
 
 # ========================================================================================
 # 										GET RV
@@ -31,34 +32,51 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon = Fal
 	# Data properties
 	nexten,norders,npix = np.shape(sp)
 	#sel_orders = np.array([11,12,13,16,17,18,20,21,24,25,26,28,29,30,31,32,33,34,35,36,39,40,41,42,43,44,45,46,48,49,51,52,53,54,55,56,57,58,59,60,61,63,64,65,66,67,68,69,70,71,73,74,75,76,77,78,79]	)# np.arange(norders)
-	sel_orders = np.array([25,26,29,30,31,32,33,34,35,36,39,40,41,42,43,44,45,46,48,49,51,52,53,54,55,56,57,58,59,60,61,63,64,65,66,67,68,69]	)# np.arange(norders)
+	#sel_orders = np.array([25,26,29,30,31,32,33,34,35,36,39,40,41,42,43,44,45,46,48,49,51,52,53,54,55,56,57,58,59,60,61,63,64,65,66,67,68,69]	)# np.arange(norders)
+	exclude_orders = np.array([27,28,30,32,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83])
+	
+ 	sel_orders = np.arange(norders-23)+23
+	_sel_orders_list = list(sel_orders)
+	for i in exclude_orders: _sel_orders_list.remove(i)
+	sel_orders = np.array(_sel_orders_list)
 
+
+# 	sel_orders = np.delete(sel_orders, exclude_orders) 
+# 	print sel_orders
+# 	sys.exit()
+
+	
 	wave = sp[3,:,300:-300]
 	flux = sp[1,:,300:-300]
 	eflux = sp[2,:,300:-300]
 	
-	# Mask
-	mask = np.genfromtxt('mask_v05.dat',dtype=None,names=True)
-	wmask = mask["WavelengthA"]
-	fmask = mask["heightnorm"]
-	fwhm_mask = mask["FWHMkms"]
-	no_broad = np.where(fwhm_mask < 10.)
-	wmask, fmask = wmask[no_broad], fmask[no_broad]
-	
-	harps_mask = np.genfromtxt(CS.RefFrames+'G2.mas',dtype=None,names=True)
-	wmaskH = (harps_mask["W0"]+harps_mask["W1"])/2.
-	fmaskH = harps_mask["Weight"]
-	widthH = (wmaskH-harps_mask["W0"])/wmaskH * c.c.value*1.e-3
-	
-	me_elem = np.where(wmask > 6798.55)[0]
-	wmaskJ, fmaskJ = wmask[me_elem], fmask[me_elem]
-	
-	me2 = np.where((wmask > 5867.59) & (wmask < 6002.98))
-	wmaskJ2, fmaskJ2 = wmask[me2], fmask[me2]
-	
-	wmask = np.concatenate((wmaskH,wmaskJ,wmaskJ2))
-	fmask = np.concatenate((fmaskH,fmaskJ,fmaskJ2))
-	id = np.concatenate((np.array(["H"*len(wmaskH)]),np.array(["J"*len(wmaskJ)]),np.array(["J"*len(wmaskJ)])))
+	# Mask (combination)
+# 	mask = np.genfromtxt('mask_v05.dat',dtype=None,names=True)
+# 	wmask = mask["WavelengthA"]
+# 	fmask = mask["heightnorm"]
+# 	fwhm_mask = mask["FWHMkms"]
+# 	no_broad = np.where(fwhm_mask < 10.)
+# 	wmask, fmask = wmask[no_broad], fmask[no_broad]
+# 	
+# 	harps_mask = np.genfromtxt(CS.RefFrames+'G2.mas',dtype=None,names=True)
+# 	wmaskH = (harps_mask["W0"]+harps_mask["W1"])/2.
+# 	fmaskH = harps_mask["Weight"]
+# 	widthH = (wmaskH-harps_mask["W0"])/wmaskH * c.c.value*1.e-3
+# 	
+# 	me_elem = np.where(wmask > 6798.55)[0]
+# 	wmaskJ, fmaskJ = wmask[me_elem], fmask[me_elem]
+# 	
+# 	me2 = np.where((wmask > 5867.59) & (wmask < 6002.98))
+# 	wmaskJ2, fmaskJ2 = wmask[me2], fmask[me2]
+# 	
+# 	wmask = np.concatenate((wmaskH,wmaskJ,wmaskJ2))
+# 	fmask = np.concatenate((fmaskH,fmaskJ,fmaskJ2))
+# 	id = np.concatenate((np.array(["H"*len(wmaskH)]),np.array(["J"*len(wmaskJ)]),np.array(["J"*len(wmaskJ)])))
+
+	# Mask (from sci4rv.py)
+	mask = np.genfromtxt('SciMask_for_RV.dat',dtype=None,names=True)
+	wmask = mask["wmask"]
+	fmask = mask["fmask"]
 	
 
 	# ==============================
@@ -68,9 +86,10 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon = Fal
 		RVguess = myRVguess
 	else:
 		dvel, vwidth = rvtbx.create_dvel(inst,wave,RVguess=0.0,RVampl=200.,verbose=True)
-		widthJ = wmaskJ*0.0 + vwidth
-		widthJ2 = wmaskJ2*0.0 + vwidth
-		my_vwidth = np.concatenate((widthH,widthJ,widthJ2))
+		my_vwidth = wmask*0.0 + vwidth
+		#widthJ = wmaskJ*0.0 + vwidth
+		#widthJ2 = wmaskJ2*0.0 + vwidth
+		#my_vwidth = np.concatenate((widthH,widthJ,widthJ2))
 		
 		CCFo = dvel*0.0
 		if norders > 1:
@@ -87,7 +106,7 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon = Fal
 		
 		popt, perr = rvtbx.fit_CCF(dvel,CCFo,CCFo*0.0+1.,guessRV=False, with_Moon = False)
 		RVguess = dvel[np.argmin(CCFo)]#popt[1]
-		CCFfwhm = popt[2]
+		CCFfwhm = popt[2]*2.*np.sqrt(2.*np.log(2.))
 		dvel0	= dvel.copy()
 		
 # 		if ~np.isfinite(RVguess):
@@ -101,7 +120,6 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon = Fal
 		
 	
 	print "Estimated RV (no BERV corrected) = ",np.str(round(RVguess,3))," km/s"
-	print popt[1]
 
 	# ==============================
 	# 	Cross-Correlation Funtion
@@ -111,19 +129,21 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon = Fal
 	RVall, eRVall 			= [], []
 	FWHMall, eFWHMall 		= [], []
 	Heightall, eHeightall 	= [], []
-	snrall 					= []
+	snrall, poptall			= [], []
 	if CCFfwhm < 20.0: 
-		if CCFfwhm < 3.0: RVampl =  200.0
-		if CCFfwhm > 3.0: RVampl =  70.0
+		RVampl =  30.0
+# 		if CCFfwhm < 3.0: RVampl =  20.0
+# 		if CCFfwhm > 3.0: RVampl =  20.0
 	elif CCFfwhm > 200.0:
 		RVampl =  200.0
 	else:
 		RVampl =  5.*CCFfwhm
 	
 	dvel, vwidth = rvtbx.create_dvel(inst,wave,RVguess=RVguess,RVampl=RVampl)
-	widthJ = wmaskJ*0.0 + vwidth
-	widthJ2 = wmaskJ2*0.0 + vwidth
-	my_vwidth = np.concatenate((widthH,widthJ,widthJ2))
+	my_vwidth = wmask*0.0 + vwidth
+# 	widthJ = wmaskJ*0.0 + vwidth
+# 	widthJ2 = wmaskJ2*0.0 + vwidth
+# 	my_vwidth = np.concatenate((widthH,widthJ,widthJ2))
 
 	print "Calculating CCF..."
 
@@ -159,10 +179,12 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon = Fal
 		FWHMall.append(popto[2]*2.*np.sqrt(2.*np.log(2.)))	
 		eFWHMall.append(perro[2]*2.*np.sqrt(2.*np.log(2.)))	
 		Heightall.append(popto[0]/popto[3])	
-		eHeightall.append(perro[0]/popto[3])	
+		eHeightall.append(perro[0]/popto[3])
+		poptall.append(popto)
 
 	CCFall, eCCFall = np.array(CCFall), np.array(eCCFall)
 	RVall, eRVall 	= np.array(RVall), np.array(eRVall)
+	poptall			= np.array(poptall)
 
 
 	# ===== CCF stacking of all orders
@@ -191,11 +213,13 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon = Fal
 
 	
 	# ===== RV uncertainty from Boisse et al. (2010)
-	#deriva = np.gradient(CCF,dvel)
-	#Nscale = 0.25 # pix # np.sqrt(np.nanmean(np.diff(dvel))   )
-	#Q_CCF = np.sqrt(np.nansum(deriva**2/CCF)) / np.sqrt(np.nansum(CCF)) * np.sqrt(Nscale)
-	#eRV = 1./(Q_CCF*np.sqrt(np.nansum(CCF)))
-	
+	try:
+		deriva = np.gradient(CCF,dvel)
+		Nscale = 0.25 # pix # np.sqrt(np.nanmean(np.diff(dvel))   )
+		Q_CCF = np.sqrt(np.nansum(deriva**2/CCF)) / np.sqrt(np.nansum(CCF)) * np.sqrt(Nscale)
+		eRV2 = 1./(Q_CCF*np.sqrt(np.nansum(CCF)))
+	except:
+		eRV2 = np.nan
 	
 	
 # 	total = 0.0
@@ -216,7 +240,8 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon = Fal
 				'Heightall':Heightall,
 				'eHeightall':eHeightall,
 				'RV':RV,
-				'eRV':eRV
+				'eRV':eRV,
+				'eRV2':eRV2
 				}
 
 
@@ -226,28 +251,43 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon = Fal
 		gs.update(left=0.1, right=0.95, bottom=0.08, top=0.93, wspace=0.08, hspace=0.08)
 		# CCF
 		ax1 = plt.subplot(gs[:,0]) 
-		plt.errorbar(dvel, CCF/popt[3], eCCF/popt[3])	
+		color=iter(cm.coolwarm_r(np.linspace(0,1,len(sel_orders))))
+		for i in range(len(sel_orders)):
+			c = next(color)
+			plt.plot(dvel,CCFall[i,:]/poptall[i][3],c=c,alpha=0.3,zorder=0)
+
+		plt.errorbar(dvel, CCF/popt[3], eCCF/popt[3],c='k',lw=2,zorder=5)	
 		if with_Moon == False:
-			plt.plot(dvel,rvtbx.gaussfit(dvel,*popt)/popt[3],c='red')
+			plt.plot(dvel,rvtbx.gaussfit(dvel,*popt)/popt[3],c='red',lw=2,alpha=0.7,zorder=10)
 		else:
-			plt.plot(dvel,rvtbx.gaussfit_Moon(dvel,*popt)/popt[3],c='red')
+			plt.plot(dvel,rvtbx.gaussfit_Moon(dvel,*popt)/popt[3],c='red',lw=2,alpha=0.7,zorder=10)
+			
 		plt.axvline(0.0,ls=':',c='gray',alpha=0.5)
 		plt.axvline(RV,ls=':',c='red',alpha=0.8)		
 		plt.xlabel('Radial velocity (km/s)')
 		plt.ylabel('sum(CCF_o*S/N_o)')
 		# RV per order
 		ax2 = plt.subplot(gs[0,1])
-		plt.errorbar(sel_orders,RVall,yerr=eRVall,fmt='o',c='Dodgerblue')
+		color=iter(cm.coolwarm_r(np.linspace(0,1,len(sel_orders))))
+		for tt in range(len(sel_orders)):
+			c = next(color)
+			plt.errorbar(sel_orders[tt],RVall[tt],yerr=eRVall[tt],fmt='o',c=c,ecolor=c)#c='Dodgerblue')
 		plt.axhline(RV,ls=':',c='k')
 		plt.ylabel('RV (km/s)')
 		# CCF height
 		ax3 = plt.subplot(gs[1,1])
-		plt.errorbar(sel_orders,Heightall,yerr=eHeightall,fmt='o',c='Tomato')
+		color=iter(cm.coolwarm_r(np.linspace(0,1,len(sel_orders))))
+		for tt in range(len(sel_orders)):
+			c = next(color)
+			plt.errorbar(sel_orders[tt],Heightall[tt],yerr=eHeightall[tt],fmt='o',c=c,ecolor=c)#c='Tomato')
 		plt.axhline(popt[0]/popt[3],ls=':',c='k')
 		plt.ylabel('CCF height (normalized)')
 		# CCF FWHM
 		ax4 = plt.subplot(gs[2,1])
-		plt.errorbar(sel_orders,FWHMall,yerr=eFWHMall,fmt='o',c='green')
+		color=iter(cm.coolwarm_r(np.linspace(0,1,len(sel_orders))))
+		for tt in range(len(sel_orders)):
+			c = next(color)
+			plt.errorbar(sel_orders[tt],FWHMall[tt],yerr=eFWHMall[tt],fmt='o',c=c,ecolor=c)#c='green')
 		plt.axhline(popt[2]*2.*np.sqrt(2.*np.log(2.)),ls=':',c='k')
 		plt.ylabel('FWHM (km/s)')
 

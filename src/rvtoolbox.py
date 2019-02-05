@@ -13,9 +13,9 @@ cc 		= C.c.value*1.e-3	# [km/s]
 # ======================================
 #		Useful functions
 # ======================================
-def gaussfit(x, a0, a1, a2, a3):
+def gaussfit(x, a0, a1, a2, a3, a4, a5):
 	z = (x-a1) / a2
-	y = a0 * np.exp(-z**2 / 2) + a3 #+ a4 * x + a5 * x**2
+	y = a0 * np.exp(-z**2 / 2) + a3 + a4 * x + a5 * x**2
 	return y
 
 def gauss(x, a):
@@ -23,7 +23,7 @@ def gauss(x, a):
 	y = a[0] * np.exp(-z**2 / 2) + a[3] #+ a4 * x + a5 * x**2
 	return y
 
-def gaussfit_Moon(x, a0, a1, a2, a3, a4, a5, a6,):
+def gaussfit_Moon(x, a0, a1, a2, a3, a4, a5, a6):
 	ztarg = (x-a1) / a2
 	ytarg = a0 * np.exp(-ztarg**2 / 2) + a3 #+ a4 * x + a5 * x**2
 	
@@ -87,17 +87,19 @@ def fit_CCF(dvel,CCF,eCCF, guessRV=True, with_Moon=False):
 		try:
 			if guessRV == True:
 				RVguess = (np.max(dvel)+np.min(dvel))/2.
-				mybounds = ([-np.inf, RVguess-5., 0.0, -np.inf], [0, RVguess+5., 100., np.inf])
+				#mybounds = ([-np.inf, RVguess-5., 0.0, -np.inf], [0, RVguess+5., 10., np.inf])
+				mybounds = ([-np.inf, RVguess-5., 0.0, -np.inf, -np.inf, -np.inf], [0, RVguess+5., 10., np.inf, np.inf, np.inf])
 			else:
-				mybounds = ([-np.inf, np.min(dvel), 0.0, -np.inf], [0, np.max(dvel), 100., np.inf])
-			myp0 = [np.min(CCF)-np.median(CCF), dvel[np.argmin(CCF)], 10., np.median(CCF)]
+				#mybounds = ([-np.inf, np.min(dvel), 0.0, -np.inf], [0, np.max(dvel), 10., np.inf])
+				mybounds = ([-np.inf, np.min(dvel), 0.0, -np.inf, -np.inf, -np.inf], [0, np.max(dvel), 10., np.inf, np.inf, np.inf])
+			myp0 = [np.min(CCF)-np.median(CCF), dvel[np.argmin(CCF)], 10., np.median(CCF), 0.0, 0.0]
 		
 			popt, pcov = curve_fit(gaussfit, dvel, CCF, p0 = myp0, bounds = mybounds) #, sigma=eCCF
 			perr = np.sqrt(np.diag(pcov))
 
 		except:
-			popt = np.zeros(4)*np.nan
-			perr = np.zeros(4)*np.nan
+			popt = np.zeros(6)*np.nan
+			perr = np.zeros(6)*np.nan
 
 	# ===== Including Moon CCF included in the fit
 	if with_Moon == True:
@@ -105,16 +107,20 @@ def fit_CCF(dvel,CCF,eCCF, guessRV=True, with_Moon=False):
 			if guessRV == True:
 				RVguess = (np.max(dvel)+np.min(dvel))/2.
 				mybounds = ([-np.inf, RVguess-5., 0.0 , -np.inf, -np.inf, -5., 0.0 ],
-							[0      , RVguess+5., 100.,  np.inf, 0.0    , 5.0, 20.])
+							[0      , RVguess+5., 10.,  np.inf, 0.0    , 5.0, 5.])
 			else:
 				mybounds = ([-np.inf, -2., 0.0 , -np.inf, -np.inf, -5., 0.0 ], 
-							[0      ,  2., 100.,  np.inf, 0.0    , 5.0, 20.])
+							[0      ,  2., 10.,  np.inf, 0.0    , 5.0, 5.])
 		
 			ampl_Moon = np.interp(0.0, dvel, CCF)-np.median(CCF)
 			
-			myp0 = [np.min(CCF)-np.median(CCF), dvel[np.argmin(CCF)], 10., np.median(CCF), # target
-					ampl_Moon, 0.0, 10.] # Moon params
-		
+			myp0 = [np.min(CCF)-np.median(CCF), RVguess, 5., np.median(CCF), # target
+					-100., 0.0, 2.] # Moon params
+			
+			#for tt,p in enumerate(myp0): print p,mybounds[0][tt],mybounds[1][tt]
+			
+			#sys.exit()
+			
 			#popt, pcov = curve_fit(gaussfit_Moon, dvel, CCF, sigma=eCCF, absolute_sigma=True,
 			#					   p0 = myp0, bounds = mybounds)
 			popt, pcov = curve_fit(gaussfit_Moon, dvel, CCF, p0 = myp0, bounds = mybounds)
@@ -134,9 +140,9 @@ def fit_CCF(dvel,CCF,eCCF, guessRV=True, with_Moon=False):
 def CCF(w,f,ef,dvel,vwidth, wmask, fmask, CRAYS=True):
 
 	# Mask cosmic rays
-	if CRAYS == True:
-		CRs = np.where(f > np.nanmedian(f)+20.*sigmaG(f[~np.isnan(f)]))[0]
-		f[CRs] = np.nan	
+# 	if CRAYS == True:
+# 		CRs = np.where(f > np.nanmedian(f)+20.*sigmaG(f[~np.isnan(f)]))[0]
+# 		f[CRs] = np.nan	
 	
 	#print np.nanmedian(f),sigmaG(f[~np.isnan(f)]),np.nanmedian(f)+20.*sigmaG(f[~np.isnan(f)])
 	
@@ -158,6 +164,11 @@ def CCF(w,f,ef,dvel,vwidth, wmask, fmask, CRAYS=True):
 
 	# Mask lines in range
 	inrange = np.where((wmask*(1.+vmin/cc) > np.min(w)+2. ) & (wmask*(1.+vmax/cc) < np.max(w)-2. ))[0]
+	if len(inrange) == 0:
+		CCF  = np.zeros(len(dvel))
+		eCCF  = np.zeros(len(dvel))
+		return CCF,eCCF
+		
 	wmaskR = wmask[inrange]
 	fmaskR = fmask[inrange]
 	dlogLambda = dlogLambda[inrange]

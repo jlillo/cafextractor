@@ -155,6 +155,12 @@ def create_SciHeader(raw_names, w_frames, WCdicts_sci, RVdicts, NORMdicts, cv):
 		else:
 			hdr['CAFEX RV']  = ('nan' , 'Radial velocity [km/s]')
 			hdr["CAFEX ERV"] = ('nan', 'Radial velocity uncertainty [km/s]')			
+		
+# 		if ~np.isnan(RVdict["eRV2"]):
+# 			hdr["CAFEX ERV2"] = (RVdict["eRV2"], 'Radial velocity uncertainty from Boisse+2012 [km/s]')
+# 		else:
+# 			hdr["CAFEX ERV2"] = ('nan', 'Radial velocity uncertainty from Boisse+2012 [km/s]')			
+		
 		hdr["CAFEX SNR"] = (NORMdict["SNR"], 'S/N per pixel at 550nm')
 
 		# ===== Add header keywords
