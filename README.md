@@ -5,9 +5,9 @@ CAFExtractor (hereafter cafex) is the observatory pipeline of the upgraded CAFE 
 Version: v0.2
 
 **Version control**
-v0.1	  01/2019	First release
-v0.2	  01/2019	ThAr RV measurements changed
-v0.3	  02/2019	New mask for science RV + fancy CCF plots
+- v0.1	  01/2019	First release
+- v0.2	  01/2019	ThAr RV measurements changed
+- v0.3	  02/2019	New mask for science RV + fancy CCF plots
 
 **Future improvements**
 - Radial velocity uncertainty estimation. Perform a CCF-dependent estimation of the RV uncertainty.
