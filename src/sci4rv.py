@@ -68,7 +68,10 @@ args = cli()
 # _____________________  PREPARATION _____________________________________________________ 
 
 # ===== Read SCI frame to be used
-arc = fits.open('sci4rv/HD182488__180725_0088_red.fits')
+arc = fits.open('sci4rv/HD109358__190425_0100_red.fits')
+hdr = arc[0].header
+realRV = hdr["HIERARCH CAFEX RV"]
+berv = hdr["HIERARCH CAFEX BERV"]
 
 wave 	= arc["WAVELENGTH"].data[:,300:-300]
 flux 	= arc["FLUX"].data[:,300:-300]
@@ -108,14 +111,14 @@ id = np.concatenate((np.array(["H"*len(wmaskH)]),np.array(["J"*len(wmaskJ)]),np.
 
 # ===== Orders to be analyzed
 """ Orders < 23 are outlside of the HARPS wavelength range, so are not used here."""
-sel_orders = np.arange(norders-2-23)+23
+sel_orders = np.arange(norders-2-21)+22
 
 
 # _____________________  CROSS-CORRELATION _______________________________________________ 
 
 
 # ===== Velocity array
-dvel, vwidth = rvtbx.create_dvel(inst,wave,RVguess=-21.,RVampl=20.)
+dvel, vwidth = rvtbx.create_dvel(inst,wave,RVguess=realRV-berv,RVampl=20.)
 vmin 	= np.min(dvel)
 vmax 	= np.max(dvel)
 
@@ -163,7 +166,7 @@ for jj,oo in enumerate(sel_orders):
 	#| Loop to select the well-behaved ThAr lines 
 	"""
 	Considerations:	
-		- Measure the CCF cumulatively adding one ThAr per step and measureing the 
+		- Measure the CCF cumulatively adding one ThAr per step and measuring the 
 		  quality of the fit through the reduced chi square parameter.
 		- Loop break conditions:
 			(a)		No more lines to remove
@@ -195,11 +198,15 @@ for jj,oo in enumerate(sel_orders):
 				CCFo,eCCFo   = rvtbx.CCF(w,f,ef,dvel,my_vwidthR2, wmaskR2, fmaskR2, CRAYS=False)
 				popto, perro = rvtbx.fit_CCF(dvel,CCFo,eCCFo, guessRV=True, with_Moon = False)
 				rverr[m] = perro[1]
+# 				if m > 0:
+# 					plt.plot(dvel,CCFo)
+# 					plt.show()
+# 					sys.exit()
 			
 				#| Chi-square determination
 				if ~np.isfinite(popto[0]):
 					chi2[m] = 0.0
-				elif np.abs(popto[1]+21.) > 5.: 
+				elif np.abs(popto[1]+(realRV-berv)) > 5.: 
 					chi2[m] =  0.0
 				else:
 					CCFmodel = rvtbx.gaussfit(dvel,*popto)

@@ -30,7 +30,7 @@ def get_RV(sp,inst, wmask, sel_orders=-10, guessRV=True, with_Moon = False, plot
 
 	# Orders exclude (show no relevant information and possible blended intense lines)
 	#exclude_orders = [27,29,30,31,50,52,55,61,69,72,74,83,   44,28,41,46,34,79,47,39,26,25,75,42,45]
-	exclude_orders = [27,29,30,32,40,41,44,46,50,53,54,71]
+	exclude_orders = np.array([27,29,30,32,40,41,44,46,50,53,54,71])-2
 
 	# Data properties
 	nexten,norders,npix = np.shape(sp)
@@ -148,7 +148,22 @@ def get_RV(sp,inst, wmask, sel_orders=-10, guessRV=True, with_Moon = False, plot
 	Q_CCF = np.sqrt(np.nansum(deriva**2/CCF)) / np.sqrt(np.nansum(CCF)) * np.sqrt(Nscale)
 	eRV2 = 1./(Q_CCF*np.sqrt(np.nansum(CCF)))
 
-	print RV, eRV, eRV2
+
+	RVdict =  { 'CCF':CCF,
+				'eCCF':eCCF,
+				'dvel':dvel,
+				'Moon_corr':'no',
+				'RVall':RVall,
+				'eRVall':eRVall,
+				'FWHMall':FWHMall,
+				'eFWHMall':eFWHMall,
+				'Heightall':Heightall,
+				'eHeightall':eHeightall,
+				'RV':RV,
+				'eRV':eRV,
+				'eRV2':eRV2
+				}
+
 
 	try:
 		fig = plt.figure(figsize=(12,8))
@@ -187,7 +202,7 @@ def get_RV(sp,inst, wmask, sel_orders=-10, guessRV=True, with_Moon = False, plot
 		print "No RV plot for this frame..."
 
 	
-	return RV, eRV, popt, perr, RVall, eRVall, eRV2
+	return RV, eRV, popt, perr, RVall, eRVall, eRV2, RVdict
 
 
 # ========================================================================================
@@ -221,7 +236,7 @@ def ArcRV(frames, cv, frame_names):
 	eRVs = []
 
 	for i,frame in enumerate(frames):
-		RV, eRV, popt, perr, _, _, _ = get_RV(frame, inst, wmask, guessRV = False, with_Moon = False, plot_name=cv.aux_dir+'/RV_'+frame_names[i]+'.pdf')
+		RV, eRV, popt, perr, _, _, _, _ = get_RV(frame, inst, wmask, guessRV = False, with_Moon = False, plot_name=cv.aux_dir+'/RV_'+frame_names[i]+'.pdf')
 		RVs.append(RV)
 		eRVs.append(eRV)
 		print RV,eRV
@@ -281,7 +296,7 @@ def AttachWC_arcs(x_arc,arcs,arc_names,					# Individual arc frames
 		# ===== Measure the RV
 		already_done = os.path.isfile(cv.aux_dir+'RVdict_'+arc_names[i]+'.npz')
 		if already_done == False:
-			RV, eRV, popt, perr, _, _, eRV2 = get_RV(w_arc_tmp, inst, wmask, guessRV = False, with_Moon = False, plot_name=cv.aux_dir+'/RV_'+arc_names[i]+'.pdf')
+			RV, eRV, popt, perr, _, _, eRV2, _ = get_RV(w_arc_tmp, inst, wmask, guessRV = False, with_Moon = False, plot_name=cv.aux_dir+'/RV_'+arc_names[i]+'.pdf')
 			np.savez(cv.aux_dir+'RVdict_'+arc_names[i],RV=RV,eRV=eRV,eRV2=eRV2)
 		else:
 			print "    --> RVdict found for "+arc_names[i]+". Loading..."
@@ -419,7 +434,7 @@ def plot_ArcRV(sci, arcs, arcRVs, arcs_cl, MasterRVs, cv):
 	elem = np.where(arcs_cl["membership"] == 1)[0]
 	plt.errorbar(arcs["jd"][elem],arcRVs[0][elem],yerr=arcRVs[1][elem],fmt='o',c='red', zorder=5)
 
-	plt.savefig(cv.aux_dir+'/arcRVs.pdf',bbox_inches='tight')
+	plt.savefig(cv.aux_dir+'/arcRVs_'+cv.night+'.pdf',bbox_inches='tight')
 	plt.close()
 
 

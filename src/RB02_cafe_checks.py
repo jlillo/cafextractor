@@ -153,7 +153,7 @@ def cafe_temperature(cv,bias,flats,arcs,sci):
 		plt.grid(ls=':',c='gray',alpha=0.5)
 		
 		ax1 = plt.subplot(gs[1,:]) 
-		plt.plot(jd,Tbenc-np.nanmean(Tbenc),'o',label='Optical bench',c='darkmagenta')
+		plt.plot(jd,Tbenc-np.nanmean(Tbenc),'o',label='Telescope Dome',c='darkmagenta')
 		plt.legend()
 		plt.grid(ls=':',c='gray',alpha=0.5)
 		
@@ -167,7 +167,7 @@ def cafe_temperature(cv,bias,flats,arcs,sci):
 		plt.legend()
 		plt.grid(ls=':',c='gray',alpha=0.5)
 
-		plt.savefig(cv.aux_dir+'cafe_temperatures.pdf',bbox_inches='tight')
+		plt.savefig(cv.aux_dir+'cafe_temperatures_'+cv.night+'.pdf',bbox_inches='tight')
 		plt.close()
 	
 	return Tcoll, Tbenc, Tgrat, Troom

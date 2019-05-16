@@ -20,6 +20,8 @@ import rvtoolbox as rvtbx
 import matplotlib.gridspec as gridspec # GRIDSPEC !
 from matplotlib.pyplot import cm
 
+import RB07_CrossCorr as RB07
+
 # ========================================================================================
 # 										GET RV
 # ========================================================================================
@@ -33,7 +35,7 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon = Fal
 	nexten,norders,npix = np.shape(sp)
 	#sel_orders = np.array([11,12,13,16,17,18,20,21,24,25,26,28,29,30,31,32,33,34,35,36,39,40,41,42,43,44,45,46,48,49,51,52,53,54,55,56,57,58,59,60,61,63,64,65,66,67,68,69,70,71,73,74,75,76,77,78,79]	)# np.arange(norders)
 	#sel_orders = np.array([25,26,29,30,31,32,33,34,35,36,39,40,41,42,43,44,45,46,48,49,51,52,53,54,55,56,57,58,59,60,61,63,64,65,66,67,68,69]	)# np.arange(norders)
-	exclude_orders = np.array([27,28,30,32,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83])
+	exclude_orders = np.array([27,28,30,32,69,70,71,72,73,74,75,76,77,78,79,80])-2#,79,80,81,82,83])
 	
  	sel_orders = np.arange(norders-23)+23
 	_sel_orders_list = list(sel_orders)
@@ -317,12 +319,17 @@ def ScienceRV(frames, cv, frame_names):
 	for i,frame in enumerate(frames):
 		already_done = os.path.isfile(cv.aux_dir+'RVdict_'+frame_names[i]+'.npz')
 		if already_done == False:
-			RV, eRV, popt, perr,RVdict = get_RV(frame, inst, with_Moon = False, plot_name=cv.aux_dir+'/RV_'+frame_names[i]+'.pdf')
-
 			hdr = fits.getheader(cv.path_red+cv.dir_red+'/'+frame_names[i])
 			berv, hjd, coord_flag = CAFEutilities.get_berv(hdr)
-		
-			RV += berv
+
+			if "ThAr" in frame_names[i]:
+				ThArMask = np.genfromtxt('ThAr_for_RV.dat',dtype=None,names=True)
+				wmask = ThArMask["wmask"]
+				RV, eRV, popt, perr, RVall, eRVall, eRV2, RVdict = RB07.get_RV(frame, inst, wmask, guessRV = False, with_Moon = False, plot_name=cv.aux_dir+'/RV_'+frame_names[i]+'.pdf')
+
+			else:
+				RV, eRV, popt, perr,RVdict = get_RV(frame, inst, with_Moon = False, plot_name=cv.aux_dir+'/RV_'+frame_names[i]+'.pdf')
+				RV += berv
 		
 			RVdict['HJD'] = hjd
 			RVdict['BERV'] = berv

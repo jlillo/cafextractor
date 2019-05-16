@@ -38,6 +38,7 @@ def renameRaw(cv):
 		    obj = head['OBJECT'].replace(" ","")
 		    obj = obj.replace("[std]_","")
 		    obj = obj.replace("[std]","")
+		    obj = obj.replace("[arc]","")
 		    obj = obj.replace(".","_")
 		    obj.replace(".","_")
 		    newname = obj+'__'+cv.night+'_'+str(i+1).zfill(4)+'.fits'

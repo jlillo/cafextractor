@@ -179,6 +179,7 @@ def get_berv(hdr):
 	
 	try:
 		obname = hdr["OBJECT"]
+		obname = obname.split(' ')[0]
 		if (('KOI' in obname) & ('-' not in obname)): obname = 'KOI-'+obname[3:]
 		ra, dec = simbad_query_radec(obname)
 		coord_flag = 'Simbad'

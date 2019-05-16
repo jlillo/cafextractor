@@ -47,6 +47,7 @@ def create_dvel(inst,w,RVguess=0.0,RVampl=15.,verbose=False):
 		for oo in range(w.shape[0]):
 			RR.append(w[oo,1:-1]/(w[oo,1:-1]-w[oo,0:-2]))
 		RR = np.array(RR)
+		RR = RR[np.where(RR > 0.)[0]]
 		R = np.nanmean(RR)/2.2
 		Vscale = cc/np.nanmean(R)
 		if verbose:
@@ -72,6 +73,9 @@ def create_dvel(inst,w,RVguess=0.0,RVampl=15.,verbose=False):
 	if ((~np.isfinite(RVguess)) | (~np.isfinite(RVampl))):
 		vmin, vmax = -100, 100
 
+	if vstep < 0.0: 
+		print "WARNING!! vstep is negative so something is WRONG... using vstep=2km/s BUT check it!"
+		vstep = 2.0
 	dvel = np.linspace(vmin,vmax,(vmax-vmin)/vstep)
 
 	return dvel,vwidth

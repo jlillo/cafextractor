@@ -1,16 +1,16 @@
 
 # ==============================
 # Basic paths:
-root		=	'/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/test_data/'
-raw			=	'/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/test_data/00_RAW/'
-redfolder	=	'/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/test_data/12_REDUCED/'
-# root		=	'/Volumes/willyfog/gang5/jlillo/22_RUNS/2019_01_CAHA_2.2_CAFE_Recommisioning_Run2/'
-# raw			=	'/Volumes/willyfog/gang5/jlillo/22_RUNS/2019_01_CAHA_2.2_CAFE_Recommisioning_Run2/00_RAW/'
-# redfolder	=	'/Volumes/willyfog/gang5/jlillo/22_RUNS/2019_01_CAHA_2.2_CAFE_Recommisioning_Run2/11_REDUCED/'
+# root		=	'/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/test_data/'
+# raw			=	'/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/test_data/00_RAW/'
+#redfolder	=	'/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/test_data/12_REDUCED/'
+root		=	'/Volumes/willyfog/gang5/jlillo/22_RUNS/2019_01_CAHA_2.2_CAFE_Recommisioning_Run2/'
+raw			=	'/Volumes/willyfog/gang5/jlillo/22_RUNS/2019_01_CAHA_2.2_CAFE_Recommisioning_Run2/00_RAW/'
+redfolder	=	'/Volumes/willyfog/gang5/jlillo/22_RUNS/2019_01_CAHA_2.2_CAFE_Recommisioning_Run2/11_REDUCED/'
 RefFrames	=	'/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/cafextractor/ReferenceFrames/'
 
-RefArc		=	'arc__180718_0031.fits'
-RefFlat		=	'flat__180718_0011.fits'
+RefArc		=	'arc__190306_0029.fits'		#'arc__180718_0031.fits'
+RefFlat		=	'flat__190306_0056.fits'	# 'flat__180718_0011.fits'
 # ==============================
 
 # Range (in days) to group the different calibration frames 
@@ -42,10 +42,10 @@ sigclip=	{	'bias': 5.,
 order_aperture_ampl = 5
 order_trace_degree  = 4
 
-y0Nominal_first = 115.433 #135.9
-Nominal_Nord = 84		# Number of orders to be exrtacted
-ordID_5500 = 43			# Order corresponding to 5500A
-order0 = 60				# Order corresponding to first extracted order
+y0Nominal_first = 107.3 # 118.6 # 115.433 #135.9
+Nominal_Nord 	= 79	# 84	# Number of orders to be exrtacted
+ordID_5500 		= 43			# Order corresponding to 5500A
+order0 			= 62	#60		# Order corresponding to first extracted order
 
 
 

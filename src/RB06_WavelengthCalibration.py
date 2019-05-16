@@ -105,16 +105,21 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 		id = fref['ID'][np.max(np.where(fref['Datestart'] < jdnight)[0])]
 		
 		#| Read the ThAr catalogue lines for this order from the CERES line catalogue
-		filename_ceres = '../ReferenceFrames/ThAr_ReferenceLines/cafe2_'+str(id).zfill(3)+'/ceres_order_'+np.str(i+60).zfill(3)+'.dat'#+'.iwdat'
-		filename_cafex = '../ReferenceFrames/ThAr_ReferenceLines/cafe2_'+str(id).zfill(3)+'/cafeX_order_'+np.str(i+60).zfill(3)+'.dat'
+		filename_ceres = '../ReferenceFrames/ThAr_ReferenceLines/cafe2_'+str(id).zfill(3)+'/ceres_order_'+np.str(i+CS.order0).zfill(3)+'.dat'#+'.iwdat'
+		filename_cafex = '../ReferenceFrames/ThAr_ReferenceLines/cafe2_'+str(id).zfill(3)+'/cafeX_order_'+np.str(i+CS.order0).zfill(3)+'.dat'
 		
 		##	filename = cv.ref_frames+'/order_'+np.str(i+60).zfill(3)+'.iwdat'
 		if os.path.isfile(filename_cafex):
 			f = open(filename_cafex).readlines()
 			file_id = 'cafex'
 		else:
-			f = open(filename_ceres).readlines()
-			file_id = 'ceres'
+			try:
+				f = open(filename_ceres).readlines()
+				file_id = 'ceres'
+			except:
+				print "    --> WARNING: file"+filename_ceres+" not found. Skipping order..."
+				Nlines_total_order.append(0)
+				continue
 	
 		#| Divide the file into columns and extract pix,wave
 		pix2 = np.array([])
@@ -172,7 +177,7 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 		#| Cross-correlation to find X-axis shift against reference values
 		ml = pix2 - 2
 		mh = pix2 + 2
-		xc,offs = GLOBALutils.XCorPix(obsmask, ml, mh, del0=0, del_width=100, del_step=1.)
+		xc,offs = GLOBALutils.XCorPix(obsmask, ml, mh, del0=0, del_width=150, del_step=1.)
 		#xc_global[i,:] = xc
 		ind_max = np.argmax( xc )
 		delta   = offs[ind_max] 
@@ -188,24 +193,31 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 		delta_refThAr[i] = delta
 		print i,delta
 
-	#xc_stack = np.sum(xc_global,axis=0)
-	#print np.shape(xc_stack)
-	#tofit = np.where((offs > delta-10) & (offs < delta+10))[0]
-# 	popt1, pcov1 = curve_fit(gauss_function, offs, xc_stack, p0 = [np.max(xc_stack), offs[np.argmax(xc_stack)], 2., 0.0])
-# 	delta = popt1[1]
-# 	#delta_refThAr[i] = delta
-# 	plt.plot(offs,xc_stack)
-# 	plt.axvline(delta)
-# 	plt.show()
+# 		xc_stack = np.sum(xc_global,axis=0)
+# 		print np.shape(xc_stack)
+# 		tofit = np.where((offs > delta-10) & (offs < delta+10))[0]
+		#popt1, pcov1 = curve_fit(gauss_function, offs, xc_stack, p0 = [np.max(xc_stack), offs[np.argmax(xc_stack)], 2., 0.0])
+		#delta = popt1[1]
+		#delta_refThAr[i] = delta
+		#plt.plot(np.arange(len(x_arc[1,i,:])),x_arc[1,i,:],c='k')
+		#for ppp in pix2: plt.axvline(ppp,ls=':',c='red')
+		#plt.show()
+		#sys.exit()
+		
+# 		plt.plot(offs,xc)
+# 		plt.axvline(delta)
+# 		plt.show()
+# 		sys.exit()
 	
 	
 		
 
-	#| Debugging plots
+		#| Debugging plots
 # 		plt.plot(xpix,x_arc[1,i,:])
 # 		for l in pix2: plt.axvline(l+delta,ls=':')
 # 		print i, "Delta = ",delta,' pix'
-# #		sys.exit()
+#		plt.show()
+#		sys.exit()
 # 	
 # 		plt.figure(2)
 # 		plt.plot(offs,xc)
@@ -395,7 +407,7 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 	
 			All_Pixel_Centers0.append(now_peak[use == 1])
 			All_Wavelengths0.append(true_peakL[use == 1])
-			All_Orders0.append(np.zeros(len(now_peak[use == 1])) + i+60   )
+			All_Orders0.append(np.zeros(len(now_peak[use == 1])) + i+CS.order0   )
 			All_residuals_ms0.append(res/true_peakL * c.c.value)
 			All_residuals0.append(res*1.e3)
 		
@@ -566,7 +578,7 @@ def WavelengthCalibration(ArcList,arcs,arc_names,cv,xshift,yshift, type):
 
 			#| Save results	
 			data = Table([WCdict['Order'],WCdict['Nlines_used_order'],WCdict['Nlines_total_order'],\
-						  WCdict['lam_residuals_order'],WCdict['rv_residuals_order']],\
+						  WCdict['lam_residuals_order'],WCdict['rv_residuals_order']], \
 						  names=['# Order', 'Nl_used','Nl_all','wave_res (mA)', 'rv_res (m/s)'])
 			
 			ascii.write(data, cv.aux_dir+'/WC_'+filename+'.dat',format ='tab')

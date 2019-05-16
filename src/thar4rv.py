@@ -81,7 +81,7 @@ fwhm_mask = wmask*0.0 + 4.0
 
 # ===== Orders to be analyzed
 """ Orders < 23 are outlside of the HARPS wavelength range, so are not used here."""
-sel_orders = np.arange(norders-2-23)+23
+sel_orders = np.arange(norders-2-21)+22
 
 
 # _____________________  CROSS-CORRELATION _______________________________________________ 

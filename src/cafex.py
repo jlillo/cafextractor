@@ -34,6 +34,8 @@ import imp
 	
 	===== HISTORY ===== 
 	2019/01/21		jlillobox		First version released
+	2019/05/16		jlillobox		v0.4 accounting for the changes in the order 
+									architecture.
 	
 """
 
@@ -92,7 +94,7 @@ if __name__ == "__main__":
 
 	args = cli()
 
-	pipeversion = 'v0.2'	# As in Github repository
+	pipeversion = 'v0.4'	# As in Github repository
 	
 	print ""
 	print "============================================================"
@@ -188,7 +190,7 @@ if __name__ == "__main__":
 		plt.plot(arcs['jd'],intensity,'o',label='Intens.',c='Limegreen')
 		plt.legend()
 		plt.grid(ls=':',c='gray',alpha=0.5)
-		plt.savefig(cv.aux_dir+'arc_shifts.pdf',bbox_inches='tight')
+		plt.savefig(cv.aux_dir+'arc_shifts_'+cv.night+'.pdf',bbox_inches='tight')
 		plt.close()
 
  	xshift, yshift = np.mean(shifts,axis=0)[0], np.mean(shifts,axis=0)[1]

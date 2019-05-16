@@ -87,7 +87,7 @@ def FrameCombine(frames,frames_cl,cv,biasList='None',biasFrames='None'):
 				MasterFrame.append(MF)
 				print "%22s %20f %10i %15.2f %15.2f" % (np.str(k),frames_cl['centers'][k], len(ClippedFrames[:,0,0]), np.mean(MasterFrame[k]),sigmaG(MasterFrame[k]) )
 		if id == 'flat':
-			ClippedFrames = data[(np.abs(means - np.mean(data)) < sigclip * np.mean(data) ) ,:,:]
+			ClippedFrames = data[(np.abs(means - np.mean(data)) < sigclip * np.std(data) ) ,:,:]
 			nframes = len(ClippedFrames[:,0,0])
 			# Bias substraction
 			for i in range(nframes):
@@ -100,7 +100,7 @@ def FrameCombine(frames,frames_cl,cv,biasList='None',biasFrames='None'):
 				print "%22s %20f %10i %15.2f %15.2f" % (np.str(k),frames_cl['centers'][k], len(ClippedFrames[:,0,0]), np.mean(MF),sigmaG(MF) )
 		if id == 'arcs':
 #			if (k == frames_cl['eveningID']) |  (k == frames_cl['morningID']):
-			ClippedFrames = data[(np.abs(means - np.mean(data)) < sigclip * np.mean(data) ) ,:,:]
+			ClippedFrames = data[(np.abs(means - np.mean(data)) < sigclip * np.std(data) ) ,:,:]
 			nframes = len(ClippedFrames[:,0,0])
 			# Bias substraction
 			for i in range(nframes):

@@ -27,7 +27,18 @@ def twoGauss_function(x, a, x0, sigma, zero, a2, x02, sigma2):
 
 
 # ===== Master Arc ffor Reference
-tpath = '/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/test_data/12_REDUCED/180725_digest/reduced'
+# tpath = '/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/test_data/12_REDUCED/180725_digest/reduced'
+
+# cafe2_003
+# tpath = '/Volumes/willyfog/gang5/jlillo/22_RUNS/2019_01_CAHA_2.2_CAFE_Recommisioning_Run2/11_REDUCED/190306/reduced'
+# order0 = 63
+# norders = 81
+
+# cafe2_004
+tpath = '/Volumes/willyfog/gang5/jlillo/22_RUNS/2019_01_CAHA_2.2_CAFE_Recommisioning_Run2/11_REDUCED/190425_digest/reduced'
+order0 = 62
+norders = 79
+
 t = fits.open(tpath+'/MasterArc_0_red.fits') #
 
 # ===== ThAr lines from Lovis+2007
@@ -50,7 +61,7 @@ ceres_int = ceres_pix*0.0+1.0
 Xpix = np.arange(2048)*1.
 
 # ===== LOOP for each order (starting at the first order with CERES information)
-for oo in np.arange(84):
+for oo in np.arange(norders):
 
 	wave = t["WAVELENGTH"].data[oo,:]
 	flux = t["FLUX"].data[oo,:]
@@ -198,9 +209,9 @@ for oo in np.arange(84):
 	for i in ok_line: plt.axvline(i,ls=':',c='blue',zorder=15)
 	
 	if 1:
-		fyes = open('auxiliar/yes_ceres_order_'+str(60+oo).zfill(3)+'.dat','w')
-		fno  = open('auxiliar/no_ceres_order_'+str(60+oo).zfill(3)+'.dat','w')
-		f    = open('auxiliar/ceres_order_'+str(60+oo).zfill(3)+'.dat','w')
+		fyes = open('auxiliar/yes_ceres_order_'+str(order0+oo).zfill(3)+'.dat','w')
+		fno  = open('auxiliar/no_ceres_order_'+str(order0+oo).zfill(3)+'.dat','w')
+		f    = open('auxiliar/ceres_order_'+str(order0+oo).zfill(3)+'.dat','w')
 		fyes.write("%5s %10s %20s %15s %10s \n" % ("# ID","Xpix","Wavelength","Intens","Line"))
 		f.write(   "%5s %10s %20s %15s %10s \n" % ("# ID","Xpix","Wavelength","Intens","Line"))
 		fno.write( "%5s %10s %20s %15s %10s \n" % ("# ID","Xpix","Wavelength","Intens","Line"))
@@ -214,7 +225,7 @@ for oo in np.arange(84):
 		fno.close()
 		f.close()
 	
-	fnoreasons = open('auxiliar/noreasons_ceres_order_'+str(60+oo).zfill(3)+'.dat','w')
+	fnoreasons = open('auxiliar/noreasons_ceres_order_'+str(order0+oo).zfill(3)+'.dat','w')
 	fnoreasons.write("%5s %5s %10s %10s %10s %10s %10s %10s %10s \n" % ("ID","ok","Diff(mA)","chi2","SNR","Diff/R","I1/I0","I0","I1"))
 	for hh in no_reasons: 
 		fnoreasons.write("%5s %5s %10.1f %10.1f %10.1f %10.1f %10.3f %10.1f %10.1f \n" % (hh[0],hh[1],hh[2],hh[3],hh[4],hh[5],hh[6],hh[7],hh[8]))

@@ -76,8 +76,10 @@ def create_ArcHeader(raw_names, w_frames, arcs_cl, cv, type):
 			hdr["CAFEX ARCRV"] = (arcRVs[0][i], "RV of ThAr frame [km/s]") 
 			hdr["CAFEX ARCRV DIFF"] = (arcRVs[0][i]-MasterRVs[0][CS.Selected_MasterARC], "RV diff. with MasterArc [km/s]") 
 		else:
-			hdr["CAFEX ARCRV"] = (MasterRVs[0][i], "RV of ThAr frame [km/s]") 
-		
+			try:
+				hdr["CAFEX ARCRV"] = (MasterRVs[0][i], "RV of ThAr frame [km/s]") 
+			except:
+				hdr["CAFEX ARCRV"] = ('nan', "RV of ThAr frame [km/s]") 	
 	
 		headers.append(hdr)
 	
@@ -152,6 +154,7 @@ def create_SciHeader(raw_names, w_frames, WCdicts_sci, RVdicts, NORMdicts, cv):
 		if ~np.isnan(RVdict["RV"]):
 			hdr['CAFEX RV']  = (RVdict["RV"] , 'Radial velocity (including corrections) [km/s]')
 			hdr["CAFEX ERV"] = (RVdict["eRV"], 'Radial velocity uncertainty [km/s]')
+			hdr["CAFEX ERV2"] = (RVdict["eRV2"], 'Radial velocity uncertainty [km/s]')
 		else:
 			hdr['CAFEX RV']  = ('nan' , 'Radial velocity [km/s]')
 			hdr["CAFEX ERV"] = ('nan', 'Radial velocity uncertainty [km/s]')			
@@ -162,6 +165,12 @@ def create_SciHeader(raw_names, w_frames, WCdicts_sci, RVdicts, NORMdicts, cv):
 # 			hdr["CAFEX ERV2"] = ('nan', 'Radial velocity uncertainty from Boisse+2012 [km/s]')			
 		
 		hdr["CAFEX SNR"] = (NORMdict["SNR"], 'S/N per pixel at 550nm')
+		
+		# ===== SNR-corrected RV
+		snr = NORMdict["SNR"]
+		corr = 0.519288890 - 0.0109191389*snr + 5.53407798e-05*snr**2
+		RVcorr = RVdict["RV"] - corr
+		hdr["CAFEX RVCORR"] = (RVcorr, 'Radial velocity corrected from the SNR-effect [km/s]')
 
 		# ===== Add header keywords
 		hdr['CAFEX VERSION'] = (cv.version, 'Pipeline version')
