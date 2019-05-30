@@ -58,10 +58,21 @@ def frames_dict(files,dates,id):
 	IS = np.argsort(dates)
 	dates = dates[IS]
 	files = files[IS]
+	
 	# If CAFE1:
 	#dc = np.array([fits.getdata(f) for f in files]).astype(float)
+	
 	# If CAFE2:
+#	dc = []
+# 	for f in files:
+# 		ffl = fits.getdata(f)
+# 		ffl[:,234] = np.nan
+# 		ffl = np.flip(ffl,1)
+# 		dc.append(ffl)
+# 	dc = np.array(dc).astype(float)
 	dc = np.array([np.flip(fits.getdata(f),1) for f in files]).astype(float)
+	#dc[:,:,234] = np.nan
+		
 	print "    --> "+id+"...ok"	
 	return {'id':id, 'files': files, 'jd':dates, 'dc':dc}
 

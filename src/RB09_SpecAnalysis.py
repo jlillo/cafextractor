@@ -104,6 +104,7 @@ def merge1D(w_frames, NORMdicts, cv, frame_names):
 				rang = np.max(wave[oo,200:-200]) -  np.min(wave[oo,200:-200])
 				wnew = np.linspace(np.min(wave[oo,200:-200]) + before ,np.max(wave[oo,200:-200]), 2048-400)
 					
+				fnorm[oo,234] = np.nan
 				f0tmp = np.interp(wnew, wave[oo,200:-200], fnorm[oo,200:-200]) 
 				f1tmp = np.interp(wnew, wave[oo-1,200:-200], fnorm[oo-1,200:-200], left = np.nan, right=np.nan) 
 				wmerge.append(wnew)

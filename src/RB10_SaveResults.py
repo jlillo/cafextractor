@@ -155,9 +155,14 @@ def create_SciHeader(raw_names, w_frames, WCdicts_sci, RVdicts, NORMdicts, cv):
 			hdr['CAFEX RV']  = (RVdict["RV"] , 'Radial velocity (including corrections) [km/s]')
 			hdr["CAFEX ERV"] = (RVdict["eRV"], 'Radial velocity uncertainty [km/s]')
 			hdr["CAFEX ERV2"] = (RVdict["eRV2"], 'Radial velocity uncertainty [km/s]')
+			hdr['CAFEX CCF FWHM']  = (RVdict["CCF_FWHM"] , 'FWHM of CCF [km/s]')
+			hdr['CAFEX CCF HEIGHT']  = (RVdict["CCF_height"] , 'Normalised CCF height [-]')
 		else:
 			hdr['CAFEX RV']  = ('nan' , 'Radial velocity [km/s]')
 			hdr["CAFEX ERV"] = ('nan', 'Radial velocity uncertainty [km/s]')			
+			hdr["CAFEX ERV2"] = ('nan', 'Radial velocity uncertainty [km/s]')			
+			hdr['CAFEX CCF FWHM']  = ('nan' , 'FWHM of CCF [km/s]')
+			hdr['CAFEX CCF HEIGHT']  = 'nan' , 'Normalised CCF height [-]')
 		
 # 		if ~np.isnan(RVdict["eRV2"]):
 # 			hdr["CAFEX ERV2"] = (RVdict["eRV2"], 'Radial velocity uncertainty from Boisse+2012 [km/s]')
@@ -168,9 +173,15 @@ def create_SciHeader(raw_names, w_frames, WCdicts_sci, RVdicts, NORMdicts, cv):
 		
 		# ===== SNR-corrected RV
 		snr = NORMdict["SNR"]
-		corr = 0.519288890 - 0.0109191389*snr + 5.53407798e-05*snr**2
+		corr_coeff = np.flip([5.08237278e-01, -1.08262818e-02,  5.45218903e-05])
+		poly_corr = np.poly1d(corr_coeff)
+		corr = poly_corr(snr)
 		RVcorr = RVdict["RV"] - corr
-		hdr["CAFEX RVCORR"] = (RVcorr, 'Radial velocity corrected from the SNR-effect [km/s]')
+
+		if ~np.isnan(RVcorr):
+			hdr["CAFEX RVCORR"] = (RVcorr, 'Radial velocity corrected from the SNR-effect [km/s]')
+		else:
+			hdr['CAFEX RVCORR']  = ('nan' , 'Radial velocity corrected from the SNR-effect [km/s]')
 
 		# ===== Add header keywords
 		hdr['CAFEX VERSION'] = (cv.version, 'Pipeline version')
@@ -208,6 +219,12 @@ def save_SciFrames(raw_names, w_frames, WCdicts, RVdicts, NORMdicts, MERGEdicts,
 		NORMdict = NORMdicts[i]
 		MERGEdict = MERGEdicts[i]
 		
+		# Remove bad column 234
+		w_frame[1,:,234] = np.nan
+		w_frame[2,:,234] = np.nan
+		NORMdict["fnorm"][:,234] = np.nan
+		NORMdict["efnorm"][:,234] = np.nan
+		
 		# ===== Read wavelength file or wavelength matrix
 		primary_hdu = fits.PrimaryHDU(header=hdr)
 		flux  = fits.ImageHDU(data=w_frame[1,:,:], name="FLUX")
@@ -231,6 +248,15 @@ def save_SciFrames(raw_names, w_frames, WCdicts, RVdicts, NORMdicts, MERGEdicts,
 		rawfilename, file_extension = os.path.splitext(raw_names[i])
 		filename = rawfilename+'_red.fits'
 		hdul.writeto(cv.redfiles_dir+filename, overwrite=True)
+		
+		sci_S = w_frame.copy()
+		sci_S[2,:,:] = sci_S[1,:,:]
+		sci_S[1,:,:] = sci_S[3,:,:]
+		sci_S = sci_S[:3,:,:]
+		sci_S = np.einsum('kli->ikl', sci_S)
+		hdu = pyfits.PrimaryHDU(sci_S)
+		filename2 = rawfilename+'_rediraf.fits'
+		hdu.writeto(cv.redfiles_dir+filename2)
 
 
 

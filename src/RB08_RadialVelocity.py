@@ -203,6 +203,8 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon = Fal
 	# RV from CCF
 	RV 		= popt[1]
 	eRV 	= perr[1]
+	FWHM	= popt[2]*2.*np.sqrt(2.*np.log(2.))
+	Height	= popt[0]
 
 # 	if ~np.isfinite(RV):
 # 		print CCF
@@ -243,7 +245,9 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon = Fal
 				'eHeightall':eHeightall,
 				'RV':RV,
 				'eRV':eRV,
-				'eRV2':eRV2
+				'eRV2':eRV2,
+				'CCF_FWHM':FWHM,
+				'CCF_height':Height
 				}
 
 

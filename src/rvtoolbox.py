@@ -88,10 +88,10 @@ def fit_CCF(dvel,CCF,eCCF, guessRV=True, with_Moon=False):
 			if guessRV == True:
 				RVguess = (np.max(dvel)+np.min(dvel))/2.
 				#mybounds = ([-np.inf, RVguess-5., 0.0, -np.inf], [0, RVguess+5., 10., np.inf])
-				mybounds = ([-np.inf, RVguess-5., 0.0, -np.inf, -np.inf, -np.inf], [0, RVguess+5., 10., np.inf, np.inf, np.inf])
+				mybounds = ([-np.inf, RVguess-5., 0.0, -np.inf, -np.inf, -np.inf], [0, RVguess+5., 100., np.inf, np.inf, np.inf])
 			else:
 				#mybounds = ([-np.inf, np.min(dvel), 0.0, -np.inf], [0, np.max(dvel), 10., np.inf])
-				mybounds = ([-np.inf, np.min(dvel), 0.0, -np.inf, -np.inf, -np.inf], [0, np.max(dvel), 10., np.inf, np.inf, np.inf])
+				mybounds = ([-np.inf, np.min(dvel), 0.0, -np.inf, -np.inf, -np.inf], [0, np.max(dvel), 100., np.inf, np.inf, np.inf])
 			myp0 = [np.min(CCF)-np.median(CCF), dvel[np.argmin(CCF)], 10., np.median(CCF), 0.0, 0.0]
 		
 			popt, pcov = curve_fit(gaussfit, dvel, CCF, p0 = myp0, bounds = mybounds) #, sigma=eCCF
@@ -201,27 +201,27 @@ def CCF(w,f,ef,dvel,vwidth, wmask, fmask, CRAYS=True):
 		eF = []
 		for hh,line in enumerate(wnew):
 			sorted = np.argsort(np.abs(w-(line+dlogLambda[hh]/2.)))
-			w1 = w[np.min([sorted[0],sorted[1]])]
-			w2 = w[np.max([sorted[0],sorted[1]])]
+			w1 = w[np.nanmin([sorted[0],sorted[1]])]
+			w2 = w[np.nanmax([sorted[0],sorted[1]])]
 			pixsize = w2-w1
 			f1 = (w2-(line+dlogLambda[hh]/2.))/pixsize
-			eflux1 = ef[np.min([sorted[0],sorted[1]])] 
+			eflux1 = ef[np.nanmin([sorted[0],sorted[1]])] 
 
 			sorted = np.argsort(np.abs(w-(line-dlogLambda[hh]/2.)))
-			w1 = w[np.min([sorted[0],sorted[1]])]
-			w2 = w[np.max([sorted[0],sorted[1]])]
+			w1 = w[np.nanmin([sorted[0],sorted[1]])]
+			w2 = w[np.nanmax([sorted[0],sorted[1]])]
 			pixsize = w2-w1
 			f0 = ((line-dlogLambda[hh]/2.)-w1)/pixsize
-			eflux0 = ef[np.min([sorted[0],sorted[1]])] 
+			eflux0 = ef[np.nanmin([sorted[0],sorted[1]])] 
 			
 			eF.append( np.sqrt((f0*eflux0)**2+(f1*eflux1)**2) ) 
 			
 		eF = np.array(eF) #* fmaskR #* np.abs(fmaskR)
 		
 		# CCF stack of all lines
-		Ftotal  = np.sum((F1-F0))# * fmaskR)  # *np.abs(fmaskR))
+		Ftotal  = np.nansum((F1-F0))# * fmaskR)  # *np.abs(fmaskR))
 		CCF[vv]  = Ftotal
-		eCCF[vv] = np.sqrt(np.sum(eF**2))
+		eCCF[vv] = np.sqrt(np.nansum(eF**2))
 		
 
 

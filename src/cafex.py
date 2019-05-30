@@ -36,6 +36,10 @@ import imp
 	2019/01/21		jlillobox		First version released
 	2019/05/16		jlillobox		v0.4 accounting for the changes in the order 
 									architecture.
+	2019/05/30		jlillobox		v0.5 
+									- introducing RV corrections for the SNR-effect,
+									- small modifications in header (including CCF_FWHM)
+									- option --root from command line instead of SetupFile
 	
 """
 
@@ -81,6 +85,7 @@ class variables:
 def cli():
     parser = argparse.ArgumentParser()
     parser.add_argument("date", help="Night date in YYMMDD")
+    parser.add_argument("--root", default=None, help="Root folder (folder that contains the 00_RAW folder)")
     parser.add_argument("-SF", "--SF", help="Setup file path", action="store_true")
     args = parser.parse_args()
     return args
@@ -94,7 +99,7 @@ if __name__ == "__main__":
 
 	args = cli()
 
-	pipeversion = 'v0.4'	# As in Github repository
+	pipeversion = 'v0.5'	# As in Github repository
 	
 	print ""
 	print "============================================================"
@@ -106,12 +111,23 @@ if __name__ == "__main__":
 	print "========================"
 	print "RB00: Setting paths"
 	print "======================== \n"
+	print args.root
+	if args.root is not None:
+		root_fold = args.root
+		raw_fold  = root_fold+'/00_RAW/'
+		red_fold  = root_fold+'/11_REDUCED/'
+	else:
+		print "    << Using default root folder set in the SetupFile... >> "
+		root_fold = CS.root
+		raw_fold  = CS.raw
+		red_fold  = CS.redfolder
+			
 	cv = variables()
-	cv.set_path_root(CS.root)
-	cv.set_path_raw(CS.raw)
+	cv.set_path_root(root_fold)
+	cv.set_path_raw(raw_fold)
 	cv.set_night(args.date)
 	cv.set_dir_raw(cv.night)
-	cv.set_path_red(CS.redfolder)
+	cv.set_path_red(red_fold)
 	cv.set_dir_red(cv.night)
 	
 	# Reference frames
