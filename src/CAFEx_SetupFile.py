@@ -1,13 +1,22 @@
 
 # ==============================
 # Basic paths:
-# root		=	'/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/test_data/'
-# raw			=	'/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/test_data/00_RAW/'
-#redfolder	=	'/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/test_data/12_REDUCED/'
-root		=	'/Volumes/willyfog/gang5/jlillo/22_RUNS/2019_04_CAHA_2.2_CAFE_CHRONOS/'
-raw			=	'/Volumes/willyfog/gang5/jlillo/22_RUNS/2019_04_CAHA_2.2_CAFE_CHRONOS/00_RAW/'
-redfolder	=	'/Volumes/willyfog/gang5/jlillo/22_RUNS/2019_04_CAHA_2.2_CAFE_CHRONOS/11_REDUCED/'
-RefFrames	=	'/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/cafextractor/ReferenceFrames/'
+if os.path.isdir("/home/pipeline"):
+	"""
+	I am in CAHA so select its paths
+	"""
+	root		=	'/'
+	raw	        =	'/CAFE_DATA/'
+	redfolder	=	'/home/pipeline/CAFE_REDUCED/'
+	RefFrames	=	'/home/pipeline/cafe_softwares/cafextractor/ReferenceFrames/'
+else:
+	"""
+	I am NOT in CAHA so select my computer paths
+	"""
+	root		=	'/Volumes/willyfog/gang5/jlillo/22_RUNS/2019_04_CAHA_2.2_CAFE_CHRONOS/'
+	raw			=	'/Volumes/willyfog/gang5/jlillo/22_RUNS/2019_04_CAHA_2.2_CAFE_CHRONOS/00_RAW/'
+	redfolder	=	'/Volumes/willyfog/gang5/jlillo/22_RUNS/2019_04_CAHA_2.2_CAFE_CHRONOS/11_REDUCED/'
+	RefFrames	=	'/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/cafextractor/ReferenceFrames/'
 
 RefArc		=	'arc__190416_0036.fits'  #'arc__190306_0029.fits'   #'arc__180718_0031.fits'
 RefFlat		=	'flat__190416_0124.fits' #'flat__190306_0056.fits'	# 'flat__180718_0011.fits'
