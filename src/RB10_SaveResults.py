@@ -180,7 +180,7 @@ def create_SciHeader(raw_names, w_frames, WCdicts_sci, RVdicts, NORMdicts, cv):
 		
 		# ===== SNR-corrected RV
 		snr = NORMdict["SNR"]
-		corr_coeff = np.flip([5.08237278e-01, -1.08262818e-02,  5.45218903e-05])
+		corr_coeff = np.flip([5.08237278e-01, -1.08262818e-02,  5.45218903e-05],0)
 		poly_corr = np.poly1d(corr_coeff)
 		corr = poly_corr(snr)
 		RVcorr = RVdict["RV"] - corr
