@@ -2,6 +2,8 @@ import sys
 import os
 import shutil
 import numpy as np
+import matplotlib
+if sys.platform != 'darwin': matplotlib.use('agg')
 import matplotlib.pyplot as plt
 from astropy.io import fits
 from astropy.coordinates import SkyCoord, match_coordinates_sky
