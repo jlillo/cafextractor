@@ -1,4 +1,4 @@
-import pyfits
+import astropy.io.fits as pyfits
 import numpy as np
 from numpy import median,sqrt,array,exp
 import scipy

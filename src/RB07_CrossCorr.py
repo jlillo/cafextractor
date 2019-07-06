@@ -2,7 +2,7 @@ import os
 import sys
 
 import scipy
-import pyfits
+import astropy.io.fits as pyfits
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy.io import fits

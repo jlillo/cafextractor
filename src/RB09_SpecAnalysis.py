@@ -2,7 +2,7 @@ import sys
 import os
 
 import scipy
-import pyfits
+import astropy.io.fits as pyfits
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec # GRIDSPEC !
