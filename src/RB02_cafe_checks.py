@@ -1,14 +1,16 @@
+import sys
+import os
+
 import scipy.signal
 import scipy.optimize as opt
 from astropy.io import fits
 import numpy as np
-import sys
-import os
 import matplotlib.pyplot as plt
 if os.path.isdir("/pcdisk/kool5/jlillo"): plt.switch_backend('agg')
 import progressbar
 from scipy import signal
 import matplotlib.gridspec as gridspec # GRIDSPEC !
+
 import CAFEutilities
 
 def twoD_Gaussian((x, y), amplitude, xo, yo, sigma_x, sigma_y, theta, offset):

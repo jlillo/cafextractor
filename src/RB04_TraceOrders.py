@@ -1,9 +1,11 @@
-import GLOBALutils
-import CAFEx_SetupFile as CS
 import numpy as np
-import CAFEutilities
 import copy
 from termcolor import colored
+
+import GLOBALutils
+import CAFEx_SetupFile as CS
+import CAFEutilities
+
 
 # ==============================
 #		Order Tracing

@@ -9,8 +9,8 @@ raw			=	'/Volumes/willyfog/gang5/jlillo/22_RUNS/2019_04_CAHA_2.2_CAFE_CHRONOS/00
 redfolder	=	'/Volumes/willyfog/gang5/jlillo/22_RUNS/2019_04_CAHA_2.2_CAFE_CHRONOS/11_REDUCED/'
 RefFrames	=	'/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/cafextractor/ReferenceFrames/'
 
-RefArc		=	'arc__190306_0029.fits'		#'arc__180718_0031.fits'
-RefFlat		=	'flat__190306_0056.fits'	# 'flat__180718_0011.fits'
+RefArc		=	'arc__190416_0036.fits'  #'arc__190306_0029.fits'   #'arc__180718_0031.fits'
+RefFlat		=	'flat__190416_0124.fits' #'flat__190306_0056.fits'	# 'flat__180718_0011.fits'
 # ==============================
 
 # Range (in days) to group the different calibration frames 

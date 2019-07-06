@@ -184,7 +184,7 @@ def get_berv(hdr):
 		ra, dec = simbad_query_radec(obname)
 		coord_flag = 'Simbad'
 	except:
-		ra  = np.float(hdr["RA"])/60./60.
+		ra  = np.float(hdr["RA"])/60./60. * 15.
 		dec = np.float(hdr["DEC"])/60./60.
 		coord_flag = 'Telescope'
 		print "     --> WARNING: getting RA/DEC from POSTN-RA/POSTN-DE header keywords!: RA="+str(ra)+" DEC="+str(dec)

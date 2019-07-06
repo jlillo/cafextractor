@@ -1,14 +1,16 @@
 import shutil
-from astropy.io import fits
 import glob
 import os
-import CAFEutilities
+from astropy.io import fits
 import numpy as np
 from scipy.stats import binned_statistic,sigmaclip
 from sklearn.cluster import MeanShift
-import CAFEx_SetupFile as CS
 from astroML.stats import sigmaG
 import matplotlib.pyplot as plt
+
+import CAFEutilities
+import CAFEx_SetupFile as CS
+
 
 # class FrameStruct():
 #     def __init__(self, FrameList):

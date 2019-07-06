@@ -1,10 +1,11 @@
-import shutil
-from astropy.io import fits
 import glob
 import os
-import CAFEutilities
+import shutil
 import numpy as np
+from astropy.io import fits
 from astropy.table import Table
+
+import CAFEutilities
 
 
 

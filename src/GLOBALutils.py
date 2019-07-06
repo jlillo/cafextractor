@@ -12,13 +12,13 @@ import sys
 import tempfile
 import StringIO
 import string
-#import pycurl
 from multiprocessing import Pool
+from pylab import *
+
 sys.path.append("../utils/CCF")
 sys.path.append("../utils/OptExtract")
 import Marsh
 import CCF
-from pylab import *
 
 import time
 

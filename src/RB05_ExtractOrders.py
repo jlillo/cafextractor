@@ -1,9 +1,10 @@
-import GLOBALutils
+import os
 import scipy
 import pyfits
 import numpy as np
-import os
 import matplotlib.pyplot as plt
+
+import GLOBALutils
 import CAFEutilities
 import CAFEx_SetupFile as CS
 

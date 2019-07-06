@@ -1,25 +1,25 @@
-import GLOBALutils
+import os
+import sys
+
 import scipy
 import pyfits
 import numpy as np
-import os
 import matplotlib.pyplot as plt
-import CAFEutilities
-import CAFEx_SetupFile as CS
 from astropy.io import fits
 from scipy.signal import find_peaks_cwt
 from scipy.optimize import curve_fit
 from sklearn.metrics.pairwise import euclidean_distances#pairwise_distances
 from astroML.stats import sigmaG
-import sys
 from astropy import constants as c
 from astropy.table import Table, Column
 from astropy.io import ascii
-import sys
-import rvtoolbox_arcs as rvtbx
 import matplotlib.gridspec as gridspec # GRIDSPEC !
 import ntpath
 
+import GLOBALutils
+import CAFEutilities
+import CAFEx_SetupFile as CS
+import rvtoolbox_arcs as rvtbx
 
 
 # ========================================================================================
@@ -300,7 +300,7 @@ def AttachWC_arcs(x_arc,arcs,arc_names,					# Individual arc frames
 			np.savez(cv.aux_dir+'RVdict_'+arc_names[i],RV=RV,eRV=eRV,eRV2=eRV2)
 		else:
 			print "    --> RVdict found for "+arc_names[i]+". Loading..."
-			load_res = np.load(cv.aux_dir+'RVdict_'+arc_names[i]+'.npz')
+			load_res = np.load(cv.aux_dir+'RVdict_'+arc_names[i]+'.npz',allow_pickle=True)
 			RV = load_res["RV"]
 			eRV = load_res["eRV"]
 			eRV2 = load_res["eRV2"]
@@ -386,7 +386,7 @@ def AttachWC(x_sci,sci,sci_names,						# Science frames
 			
 		
 		# Get info from the used MasterArc:
-		t = np.load(cv.aux_dir+'/WC_MasterArc_'+str(Selected_MasterARC)+'.npz')
+		t = np.load(cv.aux_dir+'/WC_MasterArc_'+str(Selected_MasterARC)+'.npz',allow_pickle=True)
 		coeff, cov, WCdict_MasterArc = t["coeff"], t["cov"], t["WCdict"].tolist()
 		 
 		WCdict_sci={'MasterARC':'MasterArc_'+str(Selected_MasterARC),

@@ -1,27 +1,27 @@
-import GLOBALutils
+import os
+import sys
+
 import scipy
 import pyfits
 import numpy as np
-import os
 import matplotlib.pyplot as plt
-import CAFEutilities
-import CAFEx_SetupFile as CS
 from astropy.io import fits
 from scipy.signal import find_peaks_cwt
 from scipy.optimize import curve_fit
 from sklearn.metrics.pairwise import euclidean_distances#pairwise_distances
 from astroML.stats import sigmaG
-import sys
 from astropy import constants as c
 from astropy.table import Table, Column
 from astropy.io import ascii
-import sys
-import rvtoolbox_arcs as rvtbx
 import matplotlib.gridspec as gridspec # GRIDSPEC !
 import warnings
 from astropy.utils.exceptions import AstropyWarning
 warnings.simplefilter('ignore', category=AstropyWarning)
 
+import GLOBALutils
+import CAFEutilities
+import CAFEx_SetupFile as CS
+import rvtoolbox_arcs as rvtbx
 
 
 # ========================================================================================
@@ -29,8 +29,8 @@ warnings.simplefilter('ignore', category=AstropyWarning)
 # ========================================================================================
 
 def create_ArcHeader(raw_names, w_frames, arcs_cl, cv, type):
-	tab  = np.load(cv.aux_dir+'arc_RVs.npz')
-	tabM = np.load(cv.aux_dir+'MasterArc_RVs.npz')
+	tab  = np.load(cv.aux_dir+'arc_RVs.npz',allow_pickle=True)
+	tabM = np.load(cv.aux_dir+'MasterArc_RVs.npz',allow_pickle=True)
 	arcRVs 		= tab['arcRVs']
 	MasterRVs 	= tabM['MasterRVs']
 	Selected_MasterARC_type = CS.Selected_MasterARC
@@ -47,7 +47,7 @@ def create_ArcHeader(raw_names, w_frames, arcs_cl, cv, type):
 			primary_hdu = fits.PrimaryHDU()
 			hdr = primary_hdu.header
 		
-		npz = np.load(cv.aux_dir+'WC_'+filename+'.npz')
+		npz = np.load(cv.aux_dir+'WC_'+filename+'.npz',allow_pickle=True)
 		coeff, cov, WCdict = npz["coeff"], npz["cov"], npz["WCdict"].tolist()
 		norders, npolyorder = np.shape(coeff)
 		
@@ -94,8 +94,8 @@ def create_ArcHeader(raw_names, w_frames, arcs_cl, cv, type):
 
 
 def create_SciHeader(raw_names, w_frames, WCdicts_sci, RVdicts, NORMdicts, cv):
-	tab  = np.load(cv.aux_dir+'arc_RVs.npz')
-	tabM = np.load(cv.aux_dir+'MasterArc_RVs.npz')
+	tab  = np.load(cv.aux_dir+'arc_RVs.npz',allow_pickle=True)
+	tabM = np.load(cv.aux_dir+'MasterArc_RVs.npz',allow_pickle=True)
 	arcRVs 		= tab['arcRVs']
 	MasterRVs 	= tabM['MasterRVs']
 
@@ -155,14 +155,21 @@ def create_SciHeader(raw_names, w_frames, WCdicts_sci, RVdicts, NORMdicts, cv):
 			hdr['CAFEX RV']  = (RVdict["RV"] , 'Radial velocity (including corrections) [km/s]')
 			hdr["CAFEX ERV"] = (RVdict["eRV"], 'Radial velocity uncertainty [km/s]')
 			hdr["CAFEX ERV2"] = (RVdict["eRV2"], 'Radial velocity uncertainty [km/s]')
-			hdr['CAFEX CCF FWHM']  = (RVdict["CCF_FWHM"] , 'FWHM of CCF [km/s]')
-			hdr['CAFEX CCF HEIGHT']  = (RVdict["CCF_height"] , 'Normalised CCF height [-]')
 		else:
 			hdr['CAFEX RV']  = ('nan' , 'Radial velocity [km/s]')
 			hdr["CAFEX ERV"] = ('nan', 'Radial velocity uncertainty [km/s]')			
 			hdr["CAFEX ERV2"] = ('nan', 'Radial velocity uncertainty [km/s]')			
-			hdr['CAFEX CCF FWHM']  = ('nan' , 'FWHM of CCF [km/s]')
-			hdr['CAFEX CCF HEIGHT']  = 'nan' , 'Normalised CCF height [-]')
+
+		try:
+			if ~np.isnan(RVdict["CCFFWHM"]):
+				hdr['CAFEX CCF FWHM']  = (RVdict["CCFFWHM"] , 'FWHM of CCF [km/s]')
+				hdr['CAFEX CCF HEIGHT']  = (RVdict["CCFheight"] , 'Normalised CCF height [-]')
+			else:
+				hdr['CAFEX CCF FWHM']  = ('nan' , 'FWHM of CCF [km/s]')
+				hdr['CAFEX CCF HEIGHT']  = ('nan' , 'Normalised CCF height [-]')
+		except:
+			print "No CCFFWHM found for file "+raw_names[i]
+	
 		
 # 		if ~np.isnan(RVdict["eRV2"]):
 # 			hdr["CAFEX ERV2"] = (RVdict["eRV2"], 'Radial velocity uncertainty from Boisse+2012 [km/s]')
@@ -256,7 +263,7 @@ def save_SciFrames(raw_names, w_frames, WCdicts, RVdicts, NORMdicts, MERGEdicts,
 		sci_S = np.einsum('kli->ikl', sci_S)
 		hdu = pyfits.PrimaryHDU(sci_S)
 		filename2 = rawfilename+'_rediraf.fits'
-		hdu.writeto(cv.redfiles_dir+filename2)
+		# hdu.writeto(cv.redfiles_dir+filename2, overwrite=True)
 
 
 

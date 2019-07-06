@@ -89,10 +89,11 @@ def fit_CCF(dvel,CCF,eCCF, guessRV=True, with_Moon=False):
 				RVguess = (np.max(dvel)+np.min(dvel))/2.
 				#mybounds = ([-np.inf, RVguess-5., 0.0, -np.inf], [0, RVguess+5., 10., np.inf])
 				mybounds = ([-np.inf, RVguess-5., 0.0, -np.inf, -np.inf, -np.inf], [0, RVguess+5., 100., np.inf, np.inf, np.inf])
+				myp0 = [np.min(CCF)-np.median(CCF), RVguess, 10., np.median(CCF), 0.0, 0.0]
 			else:
 				#mybounds = ([-np.inf, np.min(dvel), 0.0, -np.inf], [0, np.max(dvel), 10., np.inf])
 				mybounds = ([-np.inf, np.min(dvel), 0.0, -np.inf, -np.inf, -np.inf], [0, np.max(dvel), 100., np.inf, np.inf, np.inf])
-			myp0 = [np.min(CCF)-np.median(CCF), dvel[np.argmin(CCF)], 10., np.median(CCF), 0.0, 0.0]
+				myp0 = [np.min(CCF)-np.median(CCF), dvel[np.argmin(CCF)], 10., np.median(CCF), 0.0, 0.0]
 		
 			popt, pcov = curve_fit(gaussfit, dvel, CCF, p0 = myp0, bounds = mybounds) #, sigma=eCCF
 			perr = np.sqrt(np.diag(pcov))

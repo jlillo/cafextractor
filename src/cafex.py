@@ -181,10 +181,10 @@ if __name__ == "__main__":
 	print "+ Calculating arc shifts for night "+cv.night+"..."
 	if os.path.isfile(cv.aux_dir+'arc_shifts.npz') == False:
 		shifts,intensity = RB02.cafe_shift(cv,arcs)
-		np.savez(cv.aux_dir+'arc_shifts',shifts=shifts,intensity=intensity)
+		np.savez(cv.aux_dir+'arc_shifts',jd=arcs['jd'],shifts=shifts,intensity=intensity)
 	else:
 		print "    --> I found shifts for this night. Loading..."
-		tab = np.load(cv.aux_dir+'arc_shifts.npz')
+		tab = np.load(cv.aux_dir+'arc_shifts.npz',allow_pickle=True)
 		shifts,intensity = tab["shifts"], tab["intensity"]
 	print "    --> ... done!"
 	if 1:
@@ -230,7 +230,7 @@ if __name__ == "__main__":
 		np.savez(cv.aux_dir+'MasterBias',MasterBias=MasterBias,bias_cl=bias_cl)
 	else:
 		print "    --> I found a Master Bias file. Loading..."
-		tab = np.load(cv.aux_dir+'MasterBias.npz')
+		tab = np.load(cv.aux_dir+'MasterBias.npz',allow_pickle=True)
 		MasterBias = tab['MasterBias']
 		bias_cl = tab['bias_cl'].tolist()
 
@@ -241,7 +241,7 @@ if __name__ == "__main__":
 		np.savez(cv.aux_dir+'MasterFlat',MasterFlat=MasterFlat,flat_cl=flat_cl)
 	else:
 		print "    --> I found a Master Flat file. Loading..."
-		tab = np.load(cv.aux_dir+'MasterFlat.npz')
+		tab = np.load(cv.aux_dir+'MasterFlat.npz',allow_pickle=True)
 		MasterFlat = tab['MasterFlat']
 		flat_cl = tab['flat_cl'].tolist()
 	
@@ -253,7 +253,7 @@ if __name__ == "__main__":
 	else:
 		print "    --> I found a Master Arc file. Loading..."
 	
-	tab = np.load(cv.aux_dir+'MasterArc.npz')
+	tab = np.load(cv.aux_dir+'MasterArc.npz',allow_pickle=True)
 	MasterArc = tab['MasterArc']
 	arcs_cl = tab['arcs_cl'].tolist()
 	
@@ -280,7 +280,7 @@ if __name__ == "__main__":
 		np.savez(cv.aux_dir+'traces_ref',o_coeff=o_coeff,Nord=Nord)
 	else:
 		print "    --> I found a traces_ref.npz file... loading it!"
-		tab = np.load(cv.aux_dir+'traces_ref.npz')
+		tab = np.load(cv.aux_dir+'traces_ref.npz',allow_pickle=True)
 		o_coeff,Nord = tab['o_coeff'], tab['Nord']
 
 	o_coeff,Nord, FirstRefOrder = RB04.SelectOrders(o_coeff,Nord, 0.0)
@@ -294,7 +294,7 @@ if __name__ == "__main__":
 		np.savez(cv.aux_dir+'traces',o_coeff=o_coeff,Nord=Nord)
 	else:
 		print "    --> I found a traces.npz file... loading it!"
-		tab = np.load(cv.aux_dir+'traces.npz')
+		tab = np.load(cv.aux_dir+'traces.npz',allow_pickle=True)
 		o_coeff,Nord = tab['o_coeff'], tab['Nord']
 	print 'orders2:',np.shape(o_coeff),Nord
 	print "    --> Orders traced!"
@@ -419,7 +419,7 @@ if __name__ == "__main__":
 		#np.savez(cv.aux_dir+'arc_RVs',MasterRVs=MasterRVs,arcRVs=arcRVs)
 	else:
 		print "    --> ThAr RVs found. Loading values..."
-		tab = np.load(cv.aux_dir+'MasterArc_RVs.npz')
+		tab = np.load(cv.aux_dir+'MasterArc_RVs.npz',allow_pickle=True)
 		#MasterRVs,arcRVs = tab['MasterRVs'], tab['arcRVs']
 		MasterRVs = tab['MasterRVs']
 
@@ -438,7 +438,7 @@ if __name__ == "__main__":
 	else:
 		print "    --> Drift-correct w_arcs and ThAr RVs found. Loading frames..."
 		
-	tab = np.load(cv.aux_dir+'arc_RVs.npz')
+	tab = np.load(cv.aux_dir+'arc_RVs.npz',allow_pickle=True)
 	w_arc, WCdict_arc, arcRVs = tab['w_arc'], tab['WCdict_arc'].tolist(), tab['arcRVs']
 	
 
@@ -474,7 +474,7 @@ if __name__ == "__main__":
 		np.savez(cv.aux_dir+'sci_RVs', RVdicts=RVdicts)	
 	else:
 		print "    --> Science RVs found. Loading dictionaries..."
-		tab = np.load(cv.aux_dir+'sci_RVs.npz')
+		tab = np.load(cv.aux_dir+'sci_RVs.npz',allow_pickle=True)
 		RVdicts = tab['RVdicts'].tolist()
 	
 	rvtmp, ervtmp = [], []

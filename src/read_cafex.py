@@ -9,6 +9,7 @@ import glob
 class store_results:
   def __init__(self, obj, MYPATH=None):
 	hjd, snr, rv, erv, rvcorr, berv, texp = [], [], [], [], [], [], []
+	telfocus, telfocus_scale = [],[]
 	if MYPATH is not None:
 		wpath = MYPATH
 	else:
@@ -25,11 +26,13 @@ class store_results:
 				berv.append(np.float(hdr["HIERARCH CAFEX BERV"]))
 				texp.append(np.float(hdr["EXPTIME"]))
 				rvcorr.append(hdr["HIERARCH CAFEX RVCORR"])
+				telfocus.append(np.float(hdr["HIERARCH CAHA TEL FOCU VALUE"]))
+				telfocus_scale.append(hdr["HIERARCH CAHA TEL FOCU SCALE"])
 		except:
 			tmp=2
 		
 	hjd,rv,erv,snr, berv, texp = np.array(hjd), np.array(rv), np.array(erv), np.array(snr)  , np.array(berv), np.array(texp) 
-	
+	telfocus, telfocus_scale = np.array(telfocus), np.array(telfocus_scale)
 	self.hjd 	= hjd
 	self.rv		= rv		
 	self.erv	= erv	
@@ -37,11 +40,17 @@ class store_results:
 	self.rvcorr	= rvcorr	
 	self.berv	= berv	
 	self.texp	= texp	
+	self.telfocus	= telfocus	
+	self.telfocus_scale	= telfocus_scale	
 
 class spectrum(file):
-  def __init__(self, file):
-	wpath = os.getcwd()
-	a = fits.open(wpath+'/'+file)
+  def __init__(self, file, FULL_PATH=False):
+	if FULL_PATH:
+		mypath = file
+	else:
+		wpath = os.getcwd()
+		mypath = wpath+'/'+file
+	a = fits.open(mypath)
 		
 	self.wave	= a[2].data
 	self.flux	= a[1].data	
@@ -53,11 +62,12 @@ class spectrum(file):
 	self.dvel	= a[8].data
 	self.ccf	= a[9].data
 	self.eccf	= a[10].data
+	self.head	= a[0].header
 
 def read_obj(obj,MYPATH=None):
 	tmp = store_results(obj, MYPATH=MYPATH)
 	return tmp
 
-def read_spec(file):
-	tmp = spectrum(file)
+def read_spec(file,FULL_PATH=False):
+	tmp = spectrum(file,FULL_PATH=FULL_PATH)
 	return tmp

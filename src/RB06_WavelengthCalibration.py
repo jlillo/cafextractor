@@ -1,20 +1,22 @@
-import GLOBALutils
+import sys
+import os
+
 import scipy
 import pyfits
 import numpy as np
-import os
 import matplotlib.pyplot as plt
-import CAFEutilities
-import CAFEx_SetupFile as CS
 from astropy.io import fits
 from scipy.signal import find_peaks_cwt
 from scipy.optimize import curve_fit
 from sklearn.metrics.pairwise import euclidean_distances#pairwise_distances
 from astroML.stats import sigmaG
-import sys
 from astropy import constants as c
 from astropy.table import Table, Column
 from astropy.io import ascii
+
+import GLOBALutils
+import CAFEutilities
+import CAFEx_SetupFile as CS
 
 
 def find_nearest(array,value):
@@ -100,7 +102,7 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 
 		#| Select the optimal zero-order solution according to observing date
 		fileref = '../ReferenceFrames/ThAr_ReferenceLines/00_CAFE2_ThAr_dates.lis'
-		fref = np.genfromtxt(fileref,dtype=None,names=True)
+		fref = np.genfromtxt(fileref,dtype=None,names=True,encoding='ascii')
 		jdnight = CAFEutilities.jdnight(cv.night)
 		id = fref['ID'][np.max(np.where(fref['Datestart'] < jdnight)[0])]
 		
@@ -596,7 +598,7 @@ def WavelengthCalibration(ArcList,arcs,arc_names,cv,xshift,yshift, type):
 			#CAFEutilities.save_final_file(arc_names[ii], Xarc, 'WC_'+arc_names[ii], cv, type)
 			SS_frame = fits.open(cv.aux_dir+'WC_'+arc_names[ii])
 			S_frame.append(SS_frame[0].data)
-			w_results = np.load(cv.aux_dir+'WC_'+filename+'.npz')
+			w_results = np.load(cv.aux_dir+'WC_'+filename+'.npz',allow_pickle=True)
 			WCdict = w_results["WCdict"].tolist()
 		
 		lam_residuals_order = np.array(WCdict['lam_residuals_order'])	

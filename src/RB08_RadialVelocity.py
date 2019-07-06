@@ -1,24 +1,25 @@
-import GLOBALutils
+import sys
+import os
+
 import scipy
 import pyfits
 import numpy as np
-import os
 import matplotlib.pyplot as plt
-import CAFEutilities
-import CAFEx_SetupFile as CS
 from astropy.io import fits
 from scipy.signal import find_peaks_cwt
 from scipy.optimize import curve_fit
 from sklearn.metrics.pairwise import euclidean_distances#pairwise_distances
 from astroML.stats import sigmaG
-import sys
 from astropy import constants as c
 from astropy.table import Table, Column
 from astropy.io import ascii
-import sys
-import rvtoolbox as rvtbx
 import matplotlib.gridspec as gridspec # GRIDSPEC !
 from matplotlib.pyplot import cm
+
+import GLOBALutils
+import CAFEutilities
+import CAFEx_SetupFile as CS
+import rvtoolbox as rvtbx
 
 import RB07_CrossCorr as RB07
 
@@ -138,6 +139,7 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon = Fal
 # 		if CCFfwhm > 3.0: RVampl =  20.0
 	elif CCFfwhm > 200.0:
 		RVampl =  200.0
+		RVguess = 0.0
 	else:
 		RVampl =  5.*CCFfwhm
 	
@@ -246,32 +248,36 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon = Fal
 				'RV':RV,
 				'eRV':eRV,
 				'eRV2':eRV2,
-				'CCF_FWHM':FWHM,
-				'CCF_height':Height
+				'CCFFWHM':FWHM,
+				'CCFheight':Height
 				}
 
 
 	if 1:
 		fig = plt.figure(figsize=(12,8))
 		gs = gridspec.GridSpec(3,2, height_ratios=[1.,1.,1.], width_ratios=[1,1])
-		gs.update(left=0.1, right=0.95, bottom=0.08, top=0.93, wspace=0.08, hspace=0.08)
+		gs.update(left=0.1, right=0.95, bottom=0.08, top=0.93, wspace=0.12, hspace=0.08)
 		# CCF
 		ax1 = plt.subplot(gs[:,0]) 
 		color=iter(cm.coolwarm_r(np.linspace(0,1,len(sel_orders))))
 		for i in range(len(sel_orders)):
 			c = next(color)
-			plt.plot(dvel,CCFall[i,:]/poptall[i][3],c=c,alpha=0.3,zorder=0)
+			ccf_norm_factor = poptall[i][3] if np.isfinite(poptall[i][3]) else np.nanmedian(CCFall[i,:])
+			plt.plot(dvel,CCFall[i,:]/ccf_norm_factor,c=c,alpha=0.3,zorder=0)
 
-		plt.errorbar(dvel, CCF/popt[3], eCCF/popt[3],c='k',lw=2,zorder=5)	
+		CCF_norm_factor = popt[3] if np.isfinite(popt[3]) else np.nanmedian(CCF)
+		plt.errorbar(dvel, CCF/CCF_norm_factor, eCCF/CCF_norm_factor,c='k',lw=2,zorder=5,label='Observed CCF')	
+		
 		if with_Moon == False:
-			plt.plot(dvel,rvtbx.gaussfit(dvel,*popt)/popt[3],c='red',lw=2,alpha=0.7,zorder=10)
+			plt.plot(dvel,rvtbx.gaussfit(dvel,*popt)/CCF_norm_factor,c='red',lw=2,alpha=0.7,zorder=10,label='Model CCF')
 		else:
-			plt.plot(dvel,rvtbx.gaussfit_Moon(dvel,*popt)/popt[3],c='red',lw=2,alpha=0.7,zorder=10)
+			plt.plot(dvel,rvtbx.gaussfit_Moon(dvel,*popt)/CCF_norm_factor,c='red',lw=2,alpha=0.7,zorder=10,label='Model CCF w/ Moon')
 			
 		plt.axvline(0.0,ls=':',c='gray',alpha=0.5)
 		plt.axvline(RV,ls=':',c='red',alpha=0.8)		
 		plt.xlabel('Radial velocity (km/s)')
 		plt.ylabel('sum(CCF_o*S/N_o)')
+		plt.legend()
 		# RV per order
 		ax2 = plt.subplot(gs[0,1])
 		color=iter(cm.coolwarm_r(np.linspace(0,1,len(sel_orders))))
@@ -286,7 +292,7 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon = Fal
 		for tt in range(len(sel_orders)):
 			c = next(color)
 			plt.errorbar(sel_orders[tt],Heightall[tt],yerr=eHeightall[tt],fmt='o',c=c,ecolor=c)#c='Tomato')
-		plt.axhline(popt[0]/popt[3],ls=':',c='k')
+		plt.axhline(popt[0]/CCF_norm_factor,ls=':',c='k')
 		plt.ylabel('CCF height (normalized)')
 		# CCF FWHM
 		ax4 = plt.subplot(gs[2,1])
@@ -342,7 +348,7 @@ def ScienceRV(frames, cv, frame_names):
 
 		else:
 			print "    --> RVdict found for "+frame_names[i]+". Loading..."
-			load_dict = np.load(cv.aux_dir+'RVdict_'+frame_names[i]+'.npz')
+			load_dict = np.load(cv.aux_dir+'RVdict_'+frame_names[i]+'.npz',allow_pickle=True)
 			RVdict = load_dict["RVdict"].item()
 
 		print RVdict['RV'],RVdict['eRV']
