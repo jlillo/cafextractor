@@ -1,3 +1,43 @@
+import os
+import numpy as np
+
+"""
+	Setup file for specific parameters along the CAFE reduction.
+"""
+
+# def get_RefArc(jdnight, fref = np.genfromtxt('../ReferenceFrames/RefereceCalibs.lis',dtype=None,names=True,encoding='ascii')):
+# 	RefArc		=	fref['ArcRef'][np.max(np.where(fref['Datestart'] < jdnight)[0])]
+# 	return RefArc
+# 
+# def get_RefFlat(jdnight):
+# 	RefFlat		=	fref['FlatRef'][np.max(np.where(fref['Datestart'] < jdnight)[0])]
+# 	return RefFlat
+# 
+# def get_OrderProp(jdnight):
+# 	y0Nominal_first		=	fref['y0Nominal_first'][np.max(np.where(fref['Datestart'] < jdnight)[0])]
+# 	return y0Nominal_first
+
+class variables:
+	
+	fref = np.genfromtxt('../ReferenceFrames/ReferenceCalibs.lis',dtype=None,names=True,encoding='ascii')
+	
+	def set_RefArc(self, jdnight, fref=fref):
+		self.RefArc = fref['ArcRef'][np.max(np.where(fref['Datestart'] < jdnight)[0])]
+	
+	def set_RefFlat(self, jdnight, fref=fref):
+		self.RefFlat		=	fref['FlatRef'][np.max(np.where(fref['Datestart'] < jdnight)[0])]
+
+	def set_Orientation(self, jdnight, fref=fref):
+		self.orientation		=	fref['Orientation'][np.max(np.where(fref['Datestart'] < jdnight)[0])]
+		
+	def set_OrderProp(self, jdnight, fref=fref):
+		thisID = np.max(np.where(fref['Datestart'] < jdnight)[0])
+		self.y0Nominal_first	=	np.float(fref['y0Nominal_first'][thisID])
+		self.Nominal_Nord		=	np.int(fref['Nominal_Nord'][thisID])
+		self.order0				=	np.int(fref['order0'][thisID])
+		self.ordID_5500			=	np.int(fref['ordID_5500'][thisID])
+
+
 
 # ==============================
 # Basic paths:
@@ -18,9 +58,11 @@ else:
 	redfolder	=	'/Volumes/willyfog/gang5/jlillo/22_RUNS/2019_04_CAHA_2.2_CAFE_CHRONOS/11_REDUCED/'
 	RefFrames	=	'/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/cafextractor/ReferenceFrames/'
 
-RefArc		=	'arc__190416_0036.fits'  #'arc__190306_0029.fits'   #'arc__180718_0031.fits'
-RefFlat		=	'flat__190416_0124.fits' #'flat__190306_0056.fits'	# 'flat__180718_0011.fits'
 # ==============================
+
+
+var = variables()
+
 
 # Range (in days) to group the different calibration frames 
 # to perfom the MasterFrame (MasterBias, MasterFlat, MasterArc).
@@ -51,7 +93,7 @@ sigclip=	{	'bias': 5.,
 order_aperture_ampl = 5
 order_trace_degree  = 4
 
-y0Nominal_first = 107.3 # 118.6 # 115.433 #135.9
+#y0Nominal_first = 107.3 # 118.6 # 115.433 #135.9
 Nominal_Nord 	= 79	# 84	# Number of orders to be exrtacted
 ordID_5500 		= 43			# Order corresponding to 5500A
 order0 			= 62	#60		# Order corresponding to first extracted order

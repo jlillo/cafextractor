@@ -23,6 +23,7 @@ import rvtoolbox as rvtbx
 
 def spec_norm(w_frames, cv, frame_names):
 	
+	CS.var.set_OrderProp(CAFEutilities.jdnight(cv.night))
 	NORMdicts = []
 	for frame in w_frames:
 		wave  = frame[3,:,:]
@@ -32,8 +33,8 @@ def spec_norm(w_frames, cv, frame_names):
 		efnorm = flux*0.0 +1.
 		norm  = flux*0.0 +1.
 		myflux_all  = flux*0.0 +1.
-		snr_oo = np.zeros(CS.Nominal_Nord)
-		for oo in range(CS.Nominal_Nord):
+		snr_oo = np.zeros(CS.var.Nominal_Nord)
+		for oo in range(CS.var.Nominal_Nord):
 		
 			if np.count_nonzero(~np.isnan(flux[oo,:])) != 0:
 				# ===== SNR from der_snr
@@ -59,16 +60,16 @@ def spec_norm(w_frames, cv, frame_names):
 						efnorm[oo,:] = eflux[oo,:]/np.nanmean(flux[oo,:])
 						
 		
-		snr = snr_oo[CS.ordID_5500]
+		snr = snr_oo[CS.var.ordID_5500]
 		
-# 		for i in range(CS.Nominal_Nord): 
+# 		for i in range(CS.var.Nominal_Nord): 
 # 			plt.plot(wave[i,200:-200],flux[i,200:-200],c='green')
 # 			plt.plot(wave[i,200:-200],myflux_all[i,200:-200],c='red')
 # 			plt.plot(wave[i,200:-200],norm[i,200:-200],c='k')			
 # 		plt.show()
 # 		plt.close()
 		
-# 		for i in range(CS.Nominal_Nord): 
+# 		for i in range(CS.var.Nominal_Nord): 
 # 			plt.plot(wave[i,200:-200],fnorm[i,200:-200])
 # 		plt.show()
 # 		plt.close()
@@ -84,6 +85,7 @@ def spec_norm(w_frames, cv, frame_names):
 
 def merge1D(w_frames, NORMdicts, cv, frame_names):
 	
+	CS.var.set_OrderProp(CAFEutilities.jdnight(cv.night))
 	MERGEdicts = []
 	
 	for ii,frame in enumerate(w_frames):
@@ -98,7 +100,7 @@ def merge1D(w_frames, NORMdicts, cv, frame_names):
 		wmerge = []
 		fmerge = []
 
-		for oo in np.flip(np.arange(CS.Nominal_Nord),0):
+		for oo in np.flip(np.arange(CS.var.Nominal_Nord),0):
 			#| Check if order matches next order
 			if np.max(wave[oo,200:-200]) > np.min(wave[oo-1,200:-200]):
 				disp = np.mean(wave[oo,1:]-wave[oo,0:-1])

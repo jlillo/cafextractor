@@ -18,6 +18,17 @@ def gaussfit(x, a0, a1, a2, a3, a4, a5):
 	y = a0 * np.exp(-z**2 / 2) + a3 + a4 * x + a5 * x**2
 	return y
 
+def rotprofile(x, a0, a1, a2, a3, a4, a5, mu):
+	a 	= a0
+	x0 	= a1
+	xl	= a2	
+	y = 1. -2.*a*(1.-mu) * np.sqrt(1.-((x-x0)/xl)**2) + \
+		   (0.5*np.pi*mu*(1.-((x-x0)/xl)**2))/(np.pi*xl*(1.-mu/3.))
+	y[~np.isfinite(y)] = 1.0
+	y += a3 + a4 * x + a5 * x**2
+	return y
+
+
 def gauss(x, a):
 	z = (x-a[1]) / a[2]
 	y = a[0] * np.exp(-z**2 / 2) + a[3] #+ a4 * x + a5 * x**2
@@ -81,21 +92,38 @@ def create_dvel(inst,w,RVguess=0.0,RVampl=100.,verbose=False):
 #		CCF fitting
 # ======================================
 
-def fit_CCF(dvel,CCF,eCCF, guessRV=True, with_Moon=False):
+def fit_CCF(dvel,CCF,eCCF, RVguess=-99.9, AMPLguess=10.0, with_Moon=False, rot_profile=False):
+
+	if RVguess == -99.9:
+		guessRV = True 
+	else:
+		guessRV = False 
+		
 	# ===== No Moon CCF included in the fit
 	if with_Moon == False:
 		try:
-			if guessRV == True:
-				RVguess = (np.max(dvel)+np.min(dvel))/2.
+			if guessRV == False:
+				#RVguess = (np.max(dvel)+np.min(dvel))/2.
 				#mybounds = ([-np.inf, RVguess-5., 0.0, -np.inf], [0, RVguess+5., 10., np.inf])
-				mybounds = ([-np.inf, RVguess-5., 0.0, -np.inf, -np.inf, -np.inf], [0, RVguess+5., 100., np.inf, np.inf, np.inf])
-				myp0 = [np.min(CCF)-np.median(CCF), RVguess, 10., np.median(CCF), 0.0, 0.0]
+				if rot_profile == True:
+					mybounds = ([0.0, RVguess-10., 0.0, -np.inf, -np.inf, -np.inf, 0.0], [np.inf, RVguess+10., 100., np.inf, np.inf, np.inf, 1.0])
+					myp0 = [np.median(CCF)-np.min(CCF), RVguess, AMPLguess, np.median(CCF), 0.0, 0.0, 0.5]					
+				else:
+					mybounds = ([-np.inf, RVguess-5., 0.0, -np.inf, -np.inf, -np.inf], [0, RVguess+5., 100., np.inf, np.inf, np.inf])
+					myp0 = [np.min(CCF)-np.median(CCF), RVguess, AMPLguess, np.median(CCF), 0.0, 0.0]
 			else:
-				#mybounds = ([-np.inf, np.min(dvel), 0.0, -np.inf], [0, np.max(dvel), 10., np.inf])
-				mybounds = ([-np.inf, np.min(dvel), 0.0, -np.inf, -np.inf, -np.inf], [0, np.max(dvel), 100., np.inf, np.inf, np.inf])
-				myp0 = [np.min(CCF)-np.median(CCF), dvel[np.argmin(CCF)], 10., np.median(CCF), 0.0, 0.0]
+				if rot_profile == True:
+					mybounds = ([0.0, np.min(dvel), 0.0, -np.inf, -np.inf, -np.inf, 0.0], [1., np.max(dvel), 100., np.inf, np.inf, np.inf, 1.0])
+					myp0 = [np.median(CCF)-np.min(CCF), dvel[np.argmin(CCF)], AMPLguess, np.median(CCF), 0.0, 0.0, 0.5]
+				else:
+					mybounds = ([-np.inf, np.min(dvel), 0.0, -np.inf, -np.inf, -np.inf], [0, np.max(dvel), 100., np.inf, np.inf, np.inf])
+					myp0 = [np.min(CCF)-np.median(CCF), dvel[np.argmin(CCF)], AMPLguess, np.median(CCF), 0.0, 0.0]
 		
-			popt, pcov = curve_fit(gaussfit, dvel, CCF, p0 = myp0, bounds = mybounds) #, sigma=eCCF
+			if rot_profile == True:
+				popt, pcov = curve_fit(rotprofile, dvel, CCF, p0 = myp0, bounds = mybounds) #, sigma=eCCF
+			else:
+				popt, pcov = curve_fit(gaussfit, dvel, CCF, p0 = myp0, bounds = mybounds) #, sigma=eCCF					
+			
 			perr = np.sqrt(np.diag(pcov))
 
 		except:
@@ -105,7 +133,7 @@ def fit_CCF(dvel,CCF,eCCF, guessRV=True, with_Moon=False):
 	# ===== Including Moon CCF included in the fit
 	if with_Moon == True:
 		try:
-			if guessRV == True:
+			if guessRV == False:
 				RVguess = (np.max(dvel)+np.min(dvel))/2.
 				mybounds = ([-np.inf, RVguess-5., 0.0 , -np.inf, -np.inf, -5., 0.0 ],
 							[0      , RVguess+5., 10.,  np.inf, 0.0    , 5.0, 5.])

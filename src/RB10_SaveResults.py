@@ -94,11 +94,13 @@ def create_ArcHeader(raw_names, w_frames, arcs_cl, cv, type):
 
 
 def create_SciHeader(raw_names, w_frames, WCdicts_sci, RVdicts, NORMdicts, cv):
+	
 	tab  = np.load(cv.aux_dir+'arc_RVs.npz',allow_pickle=True)
 	tabM = np.load(cv.aux_dir+'MasterArc_RVs.npz',allow_pickle=True)
 	arcRVs 		= tab['arcRVs']
 	MasterRVs 	= tabM['MasterRVs']
 
+	CS.var.set_OrderProp(CAFEutilities.jdnight(cv.night))
 	headers = []
 
 	for i,w_frame in enumerate(w_frames):
@@ -106,7 +108,7 @@ def create_SciHeader(raw_names, w_frames, WCdicts_sci, RVdicts, NORMdicts, cv):
 		WCdict = WCdicts_sci[i]
 		NORMdict = NORMdicts[i]
 		RVdict = RVdicts[i]
-		norders = CS.Nominal_Nord
+		norders = CS.var.Nominal_Nord
 		
 		hdr = fits.getheader(cv.path_red+cv.dir_red+'/'+raw_names[i])
 		

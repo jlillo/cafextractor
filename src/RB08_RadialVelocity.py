@@ -27,8 +27,11 @@ import RB07_CrossCorr as RB07
 # 										GET RV
 # ========================================================================================
 
-def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon = False, plot_name='tmp.pdf'):
+def get_RV(sp,inst, cv, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon = False, plot_name='tmp.pdf'):
 
+	
+	CS.var.set_OrderProp(CAFEutilities.jdnight(cv.night))
+	
 	# Orders exclude (CARMENES-wise)
 	# exclude_orders = [29, 30, 38, 39, 43, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61]
 
@@ -36,9 +39,11 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon = Fal
 	nexten,norders,npix = np.shape(sp)
 	#sel_orders = np.array([11,12,13,16,17,18,20,21,24,25,26,28,29,30,31,32,33,34,35,36,39,40,41,42,43,44,45,46,48,49,51,52,53,54,55,56,57,58,59,60,61,63,64,65,66,67,68,69,70,71,73,74,75,76,77,78,79]	)# np.arange(norders)
 	#sel_orders = np.array([25,26,29,30,31,32,33,34,35,36,39,40,41,42,43,44,45,46,48,49,51,52,53,54,55,56,57,58,59,60,61,63,64,65,66,67,68,69]	)# np.arange(norders)
-	exclude_orders = np.array([27,28,30,32,69,70,71,72,73,74,75,76,77,78,79,80])-2#,79,80,81,82,83])
 	
- 	sel_orders = np.arange(norders-23)+23
+	order_offset = CS.var.order0 - 60
+	exclude_orders = np.array([27,28,30,32,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83])-order_offset#,79,80,81,82,83])
+	
+ 	sel_orders = np.arange(norders-(23-order_offset))+(23-order_offset)
 	_sel_orders_list = list(sel_orders)
 	for i in exclude_orders: _sel_orders_list.remove(i)
 	sel_orders = np.array(_sel_orders_list)
@@ -338,7 +343,7 @@ def ScienceRV(frames, cv, frame_names):
 				RV, eRV, popt, perr, RVall, eRVall, eRV2, RVdict = RB07.get_RV(frame, inst, wmask, guessRV = False, with_Moon = False, plot_name=cv.aux_dir+'/RV_'+frame_names[i]+'.pdf')
 
 			else:
-				RV, eRV, popt, perr,RVdict = get_RV(frame, inst, with_Moon = False, plot_name=cv.aux_dir+'/RV_'+frame_names[i]+'.pdf')
+				RV, eRV, popt, perr,RVdict = get_RV(frame, inst, cv, with_Moon = False, plot_name=cv.aux_dir+'/RV_'+frame_names[i]+'.pdf')
 				RV += berv
 		
 			RVdict['HJD'] = hjd

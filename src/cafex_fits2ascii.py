@@ -27,8 +27,9 @@ for file in glob.glob(path+'/*red.fits'):
 		continue
 
 	w,f,ef,fnorm,order = [],[],[],[],[]
+	norders, npix = np.shape(a["WAVELENGTH"].data)
 
-	for oo in range(82)[::-1]:
+	for oo in range(norders)[::-1]:
 		w.append(a["WAVELENGTH"].data[oo,250:-200])
 		f.append(a["FLUX"].data[oo,250:-200])
 		ef.append(a["EFLUX"].data[oo,250:-200])

@@ -8,40 +8,42 @@ import glob
 
 class store_results:
   def __init__(self, obj, MYPATH=None):
-	hjd, snr, rv, erv, rvcorr, berv, texp = [], [], [], [], [], [], []
-	telfocus, telfocus_scale = [],[]
 	if MYPATH is not None:
 		wpath = MYPATH
 	else:
 		wpath = os.getcwd()
-	for file in glob.glob(wpath+'/*.fits'):
+	files = glob.glob(wpath+'/'+obj+'*.fits')
+# 	hjd, snr, rv, erv, rvcorr, berv, texp = 7*[np.empty(len(files))*np.nan] #[], [], [], [], [], [], []
+# 	telfocus, telfocus_scale = 2*[np.empty(len(files))*np.nan] #[],[]
+	hjd, snr, rv, erv, rvcorr, berv, texp, telfocus, telfocus_scale = np.zeros((9, len(files))).tolist() 
+	fwhm, press = np.zeros(len(files)), np.zeros(len(files))
+	
+	for ii,file in enumerate(glob.glob(wpath+'/'+obj+'*.fits')):
 		a = fits.open(file)
 		hdr = a[0].header
-		try:
-			if hdr["OBJECT"].split(' ')[0] == obj:
-				hjd.append(hdr["HIERARCH CAFEX HJD"])
-				rv.append(hdr["HIERARCH CAFEX RV"])
-				erv.append(hdr["HIERARCH CAFEX ERV"])
-				snr.append(hdr["HIERARCH CAFEX SNR"])
-				berv.append(np.float(hdr["HIERARCH CAFEX BERV"]))
-				texp.append(np.float(hdr["EXPTIME"]))
-				rvcorr.append(hdr["HIERARCH CAFEX RVCORR"])
-				telfocus.append(np.float(hdr["HIERARCH CAHA TEL FOCU VALUE"]))
-				telfocus_scale.append(hdr["HIERARCH CAHA TEL FOCU SCALE"])
-		except:
-			tmp=2
-		
-	hjd,rv,erv,snr, berv, texp = np.array(hjd), np.array(rv), np.array(erv), np.array(snr)  , np.array(berv), np.array(texp) 
-	telfocus, telfocus_scale = np.array(telfocus), np.array(telfocus_scale)
-	self.hjd 	= hjd
-	self.rv		= rv		
-	self.erv	= erv	
-	self.snr	= snr	
-	self.rvcorr	= rvcorr	
-	self.berv	= berv	
-	self.texp	= texp	
-	self.telfocus	= telfocus	
-	self.telfocus_scale	= telfocus_scale	
+		hjd[ii] 	= np.float(hdr["HIERARCH CAFEX HJD"])				if "CAFEX HJD" 	in hdr.keys() else np.nan
+		erv[ii] 	= np.float(hdr["HIERARCH CAFEX ERV"]) 			if "CAFEX ERV" 	in hdr.keys() else np.nan
+		rv[ii] 		= np.float(hdr["HIERARCH CAFEX RV"] )				if "CAFEX RV" 	in hdr.keys() else np.nan
+		snr[ii] 	= np.float(hdr["HIERARCH CAFEX SNR"]) 			if "CAFEX SNR" 	in hdr.keys() else np.nan
+		berv[ii] 	= np.float(hdr["HIERARCH CAFEX BERV"]) 	if "CAFEX BERV" in hdr.keys() else np.nan
+		texp[ii] 	= np.float(hdr["EXPTIME"]) 				if "EXPTIME" 	in hdr.keys() else np.nan
+		rvcorr[ii] 	= np.float(hdr["HIERARCH CAFEX RVCORR"]) if "CAFEX RVCORR" in hdr.keys() else np.nan
+		telfocus[ii] = np.float(hdr["HIERARCH CAHA TEL FOCU VALUE"]) if "CAHA TEL FOCU VALUE" in hdr.keys() else np.nan
+		telfocus_scale[ii] = np.float(hdr["HIERARCH CAHA TEL FOCU SCALE"]) if "CAHA TEL FOCU SCALE" in hdr.keys() else np.nan
+		fwhm[ii] 	= np.float(hdr["HIERARCH CAFEX CCF FWHM"]) 	if "CAFEX CCF FWHM" in hdr.keys() else np.nan
+		press[ii] 	= np.float(hdr["HIERARCH CAHA GEN AMBI PRES"]) 	if "CAHA GEN AMBI PRES" in hdr.keys() else np.nan
+	
+	self.hjd 	= np.transpose(hjd)
+	self.rv		= np.transpose(rv)		
+	self.erv	= np.transpose(erv)	
+	self.snr	= np.transpose(snr)	
+	self.rvcorr	= np.transpose(rvcorr)	
+	self.berv	= np.transpose(berv	)
+	self.fwhm	= np.transpose(fwhm	)
+	self.press	= np.transpose(press	)
+	self.texp	= np.transpose(texp	)
+	self.telfocus	= np.transpose(telfocus	)
+	self.telfocus_scale	= np.transpose(telfocus_scale)	
 
 class spectrum(file):
   def __init__(self, file, FULL_PATH=False):

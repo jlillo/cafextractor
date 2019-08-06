@@ -48,11 +48,21 @@ def get_shift(new,ref):
 
 def cafe_shift(cv,arcs):
 
+	#| Select the optimal zero-order solution according to observing date
+	fileref = '../ReferenceFrames/ReferenceCalibs.lis'
+	fref = np.genfromtxt(fileref,dtype=None,names=True,encoding='ascii')
+	jdnight = CAFEutilities.jdnight(cv.night)
+	id = fref['ID'][np.max(np.where((fref['Datestart'] < jdnight) & (fref['Dateend'] > jdnight))[0])]
+
 	ref = fits.open(cv.arc_ref)
 	ref_data = ref[0].data
+	if id == 1:
+		ref_data = ref_data[:,::-1]
 
-	new = fits.open(arcs['files'][0])
-	new_data = new[0].data
+	#new = fits.open(arcs['files'][0])
+	#new_data = new[0].data
+	dc = arcs['dc']
+	new_data = dc[0,:,:]
 
 	# Autocorrelation of the reference arc:
 	x0,y0, e_x0,e_y0, int0 = get_shift(ref_data,ref_data)
@@ -70,9 +80,8 @@ def cafe_shift(cv,arcs):
 	intensity = np.zeros(len(arcs['files']))
 
 	# Shift of each arc against ReferenceARC
-	for i,arc in enumerate(arcs['files']):
-		frame = fits.open(arc)
-		frame_data = frame[0].data
+	for i,arc in enumerate(dc):
+		frame_data = dc[i,:,:] 
 		xshift,yshift, e_xshift,e_yshift, int = get_shift(frame_data,new_data)
 		shifts[i,:] = [xshift+xref-x0,yshift+yref-y0]
 		eshifts[i,:] = [np.sqrt(e_xshift**2+e_xref**2+e_x0**2),np.sqrt(e_yshift**2+e_yref*2-e_y0**2)]

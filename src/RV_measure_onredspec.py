@@ -54,6 +54,7 @@ def cli():
     parser.add_argument("-rv", "--RVguess", type=float , help="Guessed RV")
     parser.add_argument("-ampl", "--RVampl", type=float , help="Guessed RV")
     parser.add_argument("-U", "--UPDATERV", help="Update header keywords", action="store_true")
+    parser.add_argument("-R", "--ROTPROF", help="Rotational profile to fit CCF", action="store_true")
     args = parser.parse_args()
     return args
 
@@ -65,8 +66,17 @@ def cli():
 # 										GET RV
 # ========================================================================================
 
-def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVampl=-20., myRVguess=0.0, with_Moon = False, plot_name='tmp.pdf'):
+def get_RV(sp,inst, jdnight, sel_orders=-10, 
+			guessRV=True, 
+			myRVampl=-20., 
+			myRVguess=-99.9, 
+			with_Moon = False, 
+			rot_profile=False,
+			plot_name='tmp.pdf'):
 
+
+	if myRVguess != -99.9: guessRV=False
+	CS.var.set_OrderProp(jdnight)
 	# Orders exclude (CARMENES-wise)
 	# exclude_orders = [29, 30, 38, 39, 43, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61]
 
@@ -74,9 +84,11 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVampl=-20., myRVguess=0.0, 
 	norders,npix = np.shape(sp.flux)
 	#sel_orders = np.array([11,12,13,16,17,18,20,21,24,25,26,28,29,30,31,32,33,34,35,36,39,40,41,42,43,44,45,46,48,49,51,52,53,54,55,56,57,58,59,60,61,63,64,65,66,67,68,69,70,71,73,74,75,76,77,78,79]	)# np.arange(norders)
 	#sel_orders = np.array([25,26,29,30,31,32,33,34,35,36,39,40,41,42,43,44,45,46,48,49,51,52,53,54,55,56,57,58,59,60,61,63,64,65,66,67,68,69]	)# np.arange(norders)
-	exclude_orders = np.array([27,28,30,32,69,70,71,72,73,74,75,76,77,78,79,80])-2#,79,80,81,82,83])
+
+	order_offset = CS.var.order0 - 60
+	exclude_orders = np.array([27,28,30,32,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83])-order_offset#,79,80,81,82,83])
 	
- 	sel_orders = np.arange(norders-23)+23
+ 	sel_orders = np.arange(norders-(23-order_offset))+(23-order_offset)
 	_sel_orders_list = list(sel_orders)
 	for i in exclude_orders: _sel_orders_list.remove(i)
 	sel_orders = np.array(_sel_orders_list)
@@ -100,8 +112,9 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVampl=-20., myRVguess=0.0, 
 	# ==============================
 	# 	RV first guess
 	# ==============================
-	if myRVguess != 0.0:
+	if myRVguess != -99.9:
 		RVguess = myRVguess
+		CCFfwhm = 30.
 	else:
 		dvel, vwidth = rvtbx.create_dvel(inst,wave,RVguess=0.0,RVampl=200.,verbose=True)
 		my_vwidth = wmask*0.0 + vwidth
@@ -122,7 +135,7 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVampl=-20., myRVguess=0.0, 
 			CCFo,eCCFo = rvtbx.CCF(w,f,ef,dvel,my_vwidth, wmask, fmask)
 
 		
-		popt, perr = rvtbx.fit_CCF(dvel,CCFo,CCFo*0.0+1.,guessRV=False, with_Moon = False)
+		popt, perr = rvtbx.fit_CCF(dvel,CCFo,CCFo*0.0+1., with_Moon = False)
 		RVguess = dvel[np.argmin(CCFo)]#popt[1]
 		CCFfwhm = popt[2]*2.*np.sqrt(2.*np.log(2.))
 		dvel0	= dvel.copy()
@@ -176,9 +189,9 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVampl=-20., myRVguess=0.0, 
 		
 		if np.count_nonzero(f) !=0:
 			CCFo,eCCFo   = rvtbx.CCF(w,f,ef,dvel,my_vwidth, wmask, fmask)
-			popto, perro = rvtbx.fit_CCF(dvel,CCFo,eCCFo, guessRV=guessRV, with_Moon = with_Moon)
+			popto, perro = rvtbx.fit_CCF(dvel,CCFo,eCCFo, RVguess=myRVguess, with_Moon = with_Moon)
 		else:
-			CCFo,eCCFo = np.zeros(len(dvel)), np.zeros(len(dvel))
+			CCFo,eCCFo = np.zeros(len(dvel))*np.nan, np.zeros(len(dvel))*np.nan
 			popto, perro = np.zeros(4)*np.nan, np.zeros(4)*np.nan
 		
 		# Append results
@@ -204,7 +217,10 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVampl=-20., myRVguess=0.0, 
 
 	# ===== Gaussian fit to the stacked CCF
 	print "Measuring RV from CCF..."
-	popt, perr = rvtbx.fit_CCF(dvel,CCF,eCCF, with_Moon = with_Moon)
+	popt, perr = rvtbx.fit_CCF(dvel,CCF,eCCF, RVguess=myRVguess, AMPLguess=80., with_Moon = with_Moon, rot_profile=rot_profile)
+	
+	#np.savez('tmp_ccfprofile',dvel=dvel,CCF=CCF,eCCF=eCCF)
+	
 
 	# ===== RV results and corrections
 
@@ -266,16 +282,22 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVampl=-20., myRVguess=0.0, 
 		# CCF
 		ax1 = plt.subplot(gs[:,0]) 
 		color=iter(cm.coolwarm_r(np.linspace(0,1,len(sel_orders))))
+		zeroloc = []
 		for i in range(len(sel_orders)):
 			c = next(color)
 			ccf_norm_factor = poptall[i][3] if np.isfinite(poptall[i][3]) else np.nanmedian(CCFall[i,:])
 			plt.plot(dvel,CCFall[i,:]/ccf_norm_factor,c=c,alpha=0.3,zorder=0)
+			zeroloc.append(np.nanmedian(CCFall[i,:]/ccf_norm_factor))
 
-		CCF_norm_factor = popt[3] if np.isfinite(popt[3]) else np.nanmedian(CCF)
+		zeroloc = np.array(zeroloc)
+		CCF_norm_factor = np.nanmedian(CCF) #popt[3] if np.isfinite(popt[3]) else 
 		plt.errorbar(dvel, CCF/CCF_norm_factor, eCCF/CCF_norm_factor,c='k',lw=2,zorder=5,label='Observed CCF')	
-		
+				
 		if with_Moon == False:
-			plt.plot(dvel,rvtbx.gaussfit(dvel,*popt)/CCF_norm_factor,c='red',lw=2,alpha=0.7,zorder=10,label='Model CCF')
+			if rot_profile:
+				plt.plot(dvel,rvtbx.rotprofile(dvel,*popt)/CCF_norm_factor,c='red',lw=2,alpha=0.7,zorder=10,label='Model CCF')			
+			else:
+				plt.plot(dvel,rvtbx.gaussfit(dvel,*popt)/CCF_norm_factor,c='red',lw=2,alpha=0.7,zorder=10,label='Model CCF')
 		else:
 			plt.plot(dvel,rvtbx.gaussfit_Moon(dvel,*popt)/CCF_norm_factor,c='red',lw=2,alpha=0.7,zorder=10,label='Model CCF w/ Moon')
 			
@@ -283,7 +305,12 @@ def get_RV(sp,inst, sel_orders=-10, guessRV=True, myRVampl=-20., myRVguess=0.0, 
 		plt.axvline(RV,ls=':',c='red',alpha=0.8)		
 		plt.xlabel('Radial velocity (km/s)')
 		plt.ylabel('sum(CCF_o*S/N_o)')
+		
+		ymax = np.nanmedian(CCF/CCF_norm_factor) + 3.*sigmaG(np.array(zeroloc[np.isfinite(zeroloc)]))
+		ymin = np.nanmin(CCF/CCF_norm_factor) - 3.*sigmaG(np.array(zeroloc[np.isfinite(zeroloc)]))
+		plt.ylim(ymin,ymax)
 		plt.legend()
+		
 		# RV per order
 		ax2 = plt.subplot(gs[0,1])
 		color=iter(cm.coolwarm_r(np.linspace(0,1,len(sel_orders))))
@@ -326,13 +353,14 @@ def recalculate_rv(path,args):
 	UPDATERV = args.UPDATERV
 	sp = rcafex.read_spec(path, FULL_PATH=True)
 	inst = 'CAFE'
+	jdnight = sp.head["HIERARCH CAFEX HJD"]
 
-	if args.RVampl > 0:
+	if args.RVampl is not None:
 		myRVampl = args.RVampl
 	else:
 		myRVampl = -1
-
-	if args.RVguess > 0:
+	
+	if args.RVguess is not None:
 		myRVguess = args.RVguess
 	else:
 		myRVguess = 0.0
@@ -344,7 +372,7 @@ def recalculate_rv(path,args):
 	else:
 		plotname = 'tmp.pdf'
 
-	RV, eRV, popt, perr,RVdict = get_RV(sp, inst, myRVguess=myRVguess, myRVampl=myRVampl, with_Moon = False, plot_name=plotname)
+	RV, eRV, popt, perr,RVdict = get_RV(sp, inst, jdnight, myRVguess=myRVguess, myRVampl=myRVampl, with_Moon = False, rot_profile= args.ROTPROF, plot_name=plotname)
 
 	# ===== BERV correction
 	BERV = sp.head['HIERARCH CAFEX BERV']

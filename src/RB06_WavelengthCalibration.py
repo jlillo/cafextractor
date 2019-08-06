@@ -39,6 +39,8 @@ def twoGauss_function(x, a, x0, sigma, zero, a2, x02):
 
 def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,arc_names
 
+	CS.var.set_OrderProp(CAFEutilities.jdnight(cv.night))
+
 	# Data (this is to be passed)
 	#x_arc = pyfits.getdata(x_arc)#'/Users/lillo_box/00_Instrumentation/CAFE/CAFExtractor/cafextractor/test_data/11_REDUCED/120705/auxiliar/X_arc__120705_0023.fits')
 	x_arc = np.swapaxes(x_arc,0,1)
@@ -52,7 +54,7 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 	ncoef_m            = CS.nm
 	npar_wsol = (min(ncoef_x,ncoef_m) + 1) * (2*max(ncoef_x,ncoef_m) - min(ncoef_x,ncoef_m) + 2) / 2
 	n_useful = 80
-	ro0      = CS.order0
+	ro0      = CS.var.order0
 
 	#t = np.genfromtxt('/Users/lillo_box/Desktop/thar_px_wave.dat',skip_header=1)
 	#lam = t[:,3]
@@ -86,7 +88,7 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 	Wavelength			= []
 	Order 				= []
 	
-	Nord 				= CS.Nominal_Nord	#82
+	Nord 				= CS.var.Nominal_Nord	#82
 	delta_refThAr		= np.zeros(Nord)
 
 	
@@ -104,11 +106,11 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 		fileref = '../ReferenceFrames/ThAr_ReferenceLines/00_CAFE2_ThAr_dates.lis'
 		fref = np.genfromtxt(fileref,dtype=None,names=True,encoding='ascii')
 		jdnight = CAFEutilities.jdnight(cv.night)
-		id = fref['ID'][np.max(np.where(fref['Datestart'] < jdnight)[0])]
+		id = fref['ID'][np.max(np.where((fref['Datestart'] < jdnight) & (fref['Dateend'] > jdnight))[0])]
 		
 		#| Read the ThAr catalogue lines for this order from the CERES line catalogue
-		filename_ceres = '../ReferenceFrames/ThAr_ReferenceLines/cafe2_'+str(id).zfill(3)+'/ceres_order_'+np.str(i+CS.order0).zfill(3)+'.dat'#+'.iwdat'
-		filename_cafex = '../ReferenceFrames/ThAr_ReferenceLines/cafe2_'+str(id).zfill(3)+'/cafeX_order_'+np.str(i+CS.order0).zfill(3)+'.dat'
+		filename_ceres = '../ReferenceFrames/ThAr_ReferenceLines/cafe2_'+str(id).zfill(3)+'/ceres_order_'+np.str(i+CS.var.order0).zfill(3)+'.dat'#+'.iwdat'
+		filename_cafex = '../ReferenceFrames/ThAr_ReferenceLines/cafe2_'+str(id).zfill(3)+'/cafeX_order_'+np.str(i+CS.var.order0).zfill(3)+'.dat'
 		
 		##	filename = cv.ref_frames+'/order_'+np.str(i+60).zfill(3)+'.iwdat'
 		if os.path.isfile(filename_cafex):
@@ -164,7 +166,7 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 		binmask = np.zeros(2048)
 		binmask[pix2.astype(np.int64)] = 1.0
 	
-		#| Find peaks in the ThAr extracted spectrum
+		#| Find peaks in the ThAr extracted spectrum		
 		peakind = find_peaks_cwt(x_arc[1,i,:],np.arange(0.5,10),min_snr=5.)
 		if len(peakind) == 0:
 			print "    --> WARNING: no ThAr line found in order #"+str(i)
@@ -201,10 +203,11 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 		#popt1, pcov1 = curve_fit(gauss_function, offs, xc_stack, p0 = [np.max(xc_stack), offs[np.argmax(xc_stack)], 2., 0.0])
 		#delta = popt1[1]
 		#delta_refThAr[i] = delta
-		#plt.plot(np.arange(len(x_arc[1,i,:])),x_arc[1,i,:],c='k')
-		#for ppp in pix2: plt.axvline(ppp,ls=':',c='red')
-		#plt.show()
-		#sys.exit()
+# 		plt.close()
+# 		plt.plot(np.arange(len(x_arc[1,i,:])),x_arc[1,i,:],c='k')
+# 		for ppp in pix2: plt.axvline(ppp,ls=':',c='red')
+# 		plt.show()
+# 		sys.exit()
 		
 # 		plt.plot(offs,xc)
 # 		plt.axvline(delta)
@@ -409,7 +412,7 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 	
 			All_Pixel_Centers0.append(now_peak[use == 1])
 			All_Wavelengths0.append(true_peakL[use == 1])
-			All_Orders0.append(np.zeros(len(now_peak[use == 1])) + i+CS.order0   )
+			All_Orders0.append(np.zeros(len(now_peak[use == 1])) + i+CS.var.order0   )
 			All_residuals_ms0.append(res/true_peakL * c.c.value)
 			All_residuals0.append(res*1.e3)
 		
@@ -476,7 +479,7 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 	
 	p1, G_pix, G_ord, G_wav, II, rms_ms, G_res, cov1 = GLOBALutils.Fit_Global_Wav_Solution(_All_Pixel_Centers, _All_Wavelengths,\
 							     _All_Orders, np.ones(len(_All_Orders)), p0, Cheby=True,       \
-							     order0=CS.order0, ntotal=CS.Nominal_Nord, maxrms=200, Inv=True, minlines=200,  \
+							     order0=CS.var.order0, ntotal=CS.var.Nominal_Nord, maxrms=200, Inv=True, minlines=200,  \
 							     npix=2048.,nx=CS.nx,nm=CS.nm)
 
 	# ===== Plot results of Wavelentgh Solution
@@ -494,19 +497,19 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 
 	# ===== Calculate Wavelength matrix:
 	WavelengthGlobal = []
-	for oo in range(CS.Nominal_Nord):
-		m = oo + CS.order0
+	for oo in range(CS.var.Nominal_Nord):
+		m = oo + CS.var.order0
 		x = 1.*np.arange(npix)
-		chebs = GLOBALutils.Calculate_chebs(x, m, Inverse=True,order0=CS.order0,ntotal=CS.Nominal_Nord,npix=npix,nx=CS.nx,nm=CS.nm)
+		chebs = GLOBALutils.Calculate_chebs(x, m, Inverse=True,order0=CS.var.order0,ntotal=CS.var.Nominal_Nord,npix=npix,nx=CS.nx,nm=CS.nm)
 		ww = (1.0/m) * GLOBALutils.Joint_Polynomial_Cheby(p1,chebs,CS.nx,CS.nm) 
 		WavelengthGlobal.append(ww)
 
 	# ===== Compute statistics from Global Wavelength Solution:
 	Nused = 1.*len(II)
 	for oo in np.arange(Nord):
-		this = np.where(G_ord == oo+CS.order0)[0]
+		this = np.where(G_ord == oo+CS.var.order0)[0]
 
-		Order.append(oo+CS.order0)
+		Order.append(oo+CS.var.order0)
 		rv_residuals_order.append(np.sqrt(np.var( G_res[this] / G_wav[this] * c.c.value)))
 		lam_residuals_order.append(np.sqrt(np.var(G_res[this])))
 		Nlines_used_order.append(len(this))
@@ -514,7 +517,7 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 		All_Pixel_Centers.append(G_pix[this])
 		All_Wavelengths.append(G_wav[this])
 		All_Residuals.append(G_res[this]*1.e3)
-		All_Orders.append(np.zeros(len(this)) + oo + CS.order0   )
+		All_Orders.append(np.zeros(len(this)) + oo + CS.var.order0   )
 	
 		WC_coeffs.append(p1)
 		WC_covs.append(cov1)

@@ -25,15 +25,16 @@ def TraceOrders(Flats):
 # ==============================
 #		Order Checking
 # ==============================
-def SelectOrders(o_coeff,Nord, yshift, y0Nominal_first = None):
+def SelectOrders(o_coeff,Nord, yshift, cv, y0Nominal_first = None):
 	nx, ny = 2048, 2048
+	CS.var.set_OrderProp(CAFEutilities.jdnight(cv.night))
 	
 	# ===== Define nominal number of orders and First order from CAFEx_SetupFile
 	if y0Nominal_first == None:
-		y0Nominal_first = CS.y0Nominal_first + yshift
+		y0Nominal_first = CS.var.y0Nominal_first + yshift
 	else:
 		y0Nominal_first = y0Nominal_first + yshift
-	Nominal_Nord = np.int(CS.Nominal_Nord)
+	Nominal_Nord = np.int(CS.var.Nominal_Nord)
 	
 	# ===== Initialize arrays to update the number of orders and trace coefficients
 	new_Nord = []

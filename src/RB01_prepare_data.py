@@ -6,6 +6,7 @@ from astropy.io import fits
 from astropy.table import Table
 
 import CAFEutilities
+import CAFEx_SetupFile as CS
 
 
 
@@ -53,12 +54,13 @@ def renameRaw(cv):
 	# ===== Rename accordingly
 		os.rename(file, dir+'/'+newname)
 
-def frames_dict(files,dates,id):
+def frames_dict(files,dates,cv,id):
 	dates = np.array(dates)
 	files = np.array(files)
 	IS = np.argsort(dates)
 	dates = dates[IS]
 	files = files[IS]
+	CS.var.set_Orientation(CAFEutilities.jdnight(cv.night))
 	
 	# If CAFE1:
 	#dc = np.array([fits.getdata(f) for f in files]).astype(float)
@@ -71,7 +73,20 @@ def frames_dict(files,dates,id):
 # 		ffl = np.flip(ffl,1)
 # 		dc.append(ffl)
 # 	dc = np.array(dc).astype(float)
-	dc = np.array([np.flip(fits.getdata(f),1) for f in files]).astype(float)
+
+	# Orientation of the CCD (according to grating orientation up/down). Right ==> 2018 on
+	CS.var.orientation = 'left'
+	if CS.var.orientation == 'right':
+		dc = np.array([np.flip(fits.getdata(f),1) for f in files]).astype(float)
+	elif CS.var.orientation == 'left':
+		dc = np.array([fits.getdata(f) for f in files]).astype(float)
+	else:
+		print "   ---> ERROR: I found no orientation value in the ReferenceCalib.lis "
+		print "				  file for thi date. Please check that your observations fall "
+		print " 			  into one of the cafe CCD windows defined in that file. "
+		sys.exit()
+	
+	
 	#dc[:,:,234] = np.nan
 		
 	print "    --> "+id+"...ok"	
@@ -139,10 +154,10 @@ def ClassifyFiles(cv):
 			mjd = CAFEutilities.mjd_fromheader(h)
 			arcs_dates.append( mjd )
 
-	flat = frames_dict(flat,flat_dates,'flat')
-	bias = frames_dict(bias,bias_dates,'bias')
-	arcs = frames_dict(arcs,arcs_dates,'arcs')
-	sci  = frames_dict(sci ,sci_dates,'sci')
+	flat = frames_dict(flat,flat_dates,cv,'flat')
+	bias = frames_dict(bias,bias_dates,cv,'bias')
+	arcs = frames_dict(arcs,arcs_dates,cv,'arcs')
+	sci  = frames_dict(sci ,sci_dates,cv,'sci')
 	
 # 	flat_dates = np.array(flat_dates)
 # 	flat = np.array(flat)

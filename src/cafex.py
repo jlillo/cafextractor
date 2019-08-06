@@ -24,6 +24,7 @@ import RB09_SpecAnalysis as RB09
 import RB10_SaveResults as RB10
 
 import CAFEx_SetupFile as CS
+import CAFEutilities
 import imp
 
 """
@@ -42,6 +43,9 @@ import imp
 									- introducing RV corrections for the SNR-effect,
 									- small modifications in header (including CCF_FWHM)
 									- option --root from command line instead of SetupFile
+	2019/07/26		jlillobox		v0.6 
+									- Modifications to automatically account for CAFE windows,
+									- New file in ReferenceFrames/ReferenceCalibs.lis
 	
 """
 
@@ -101,7 +105,7 @@ if __name__ == "__main__":
 
 	args = cli()
 
-	pipeversion = 'v0.5'	# As in Github repository
+	pipeversion = 'v0.6'	# As in Github repository
 	
 	print ""
 	print "============================================================"
@@ -134,9 +138,12 @@ if __name__ == "__main__":
 	
 	# Reference frames
 	refFrames_dir = CS.RefFrames
+	jdnight = CAFEutilities.jdnight(cv.night)
+	CS.var.set_RefArc(jdnight)
+	CS.var.set_RefFlat(jdnight)
 	cv.set_dir_ref(refFrames_dir)
-	cv.arc_ref  = refFrames_dir+'/'+CS.RefArc  # arc__160722_0061.fits
-	cv.flat_ref = refFrames_dir+'/'+CS.RefFlat # flat__160722_evening.fits
+	cv.arc_ref  = refFrames_dir+'/'+CS.var.RefArc  	# arc__160722_0061.fits
+	cv.flat_ref = refFrames_dir+'/'+CS.var.RefFlat 	# flat__160722_evening.fits
 	cv.aux_dir  = cv.path_red + cv.dir_red + '/auxiliar/'
 	cv.redfiles_dir  = cv.path_red + cv.dir_red + '/reduced/'
 	cv.version = pipeversion
@@ -285,7 +292,7 @@ if __name__ == "__main__":
 		tab = np.load(cv.aux_dir+'traces_ref.npz',allow_pickle=True)
 		o_coeff,Nord = tab['o_coeff'], tab['Nord']
 
-	o_coeff,Nord, FirstRefOrder = RB04.SelectOrders(o_coeff,Nord, 0.0)
+	o_coeff,Nord, FirstRefOrder = RB04.SelectOrders(o_coeff,Nord, 0.0, cv)
 	print 'orders:',np.shape(o_coeff),Nord
 	
 	# ==================================================
@@ -303,7 +310,7 @@ if __name__ == "__main__":
 
 	# ==================================================
 	print "+ Checking orders traced and selecting the nominal CAFE ones..."
-	o_coeff,Nord, Y_of_first_order = RB04.SelectOrders(o_coeff,Nord, yshift, y0Nominal_first = FirstRefOrder)
+	o_coeff,Nord, Y_of_first_order = RB04.SelectOrders(o_coeff,Nord, yshift, cv, y0Nominal_first = FirstRefOrder)
 	print 'orders3:',np.shape(o_coeff),Nord
 	
 	print " "
