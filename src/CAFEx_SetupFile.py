@@ -33,6 +33,7 @@ class variables:
 	def set_OrderProp(self, jdnight, fref=fref):
 		thisID = np.max(np.where(fref['Datestart'] < jdnight)[0])
 		self.y0Nominal_first	=	np.float(fref['y0Nominal_first'][thisID])
+		self.x0_first			=	np.float(fref['x0_first'][thisID])
 		self.Nominal_Nord		=	np.int(fref['Nominal_Nord'][thisID])
 		self.order0				=	np.int(fref['order0'][thisID])
 		self.ordID_5500			=	np.int(fref['ordID_5500'][thisID])

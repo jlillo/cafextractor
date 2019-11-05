@@ -31,9 +31,9 @@ def SelectOrders(o_coeff,Nord, yshift, cv, y0Nominal_first = None):
 	
 	# ===== Define nominal number of orders and First order from CAFEx_SetupFile
 	if y0Nominal_first == None:
-		y0Nominal_first = CS.var.y0Nominal_first + yshift
+		y0Nominal_first = CS.var.y0Nominal_first #+ yshift
 	else:
-		y0Nominal_first = y0Nominal_first + yshift
+		y0Nominal_first = y0Nominal_first #+ yshift
 	Nominal_Nord = np.int(CS.var.Nominal_Nord)
 	
 	# ===== Initialize arrays to update the number of orders and trace coefficients
@@ -50,7 +50,7 @@ def SelectOrders(o_coeff,Nord, yshift, cv, y0Nominal_first = None):
 		y0 = []
 		for jj in range(Nominal_Nord):
 			p0 = np.poly1d(o_coeff[ii][jj,:])
-			y0.append(p0(1024.))
+			y0.append(p0(CS.var.x0_first)) #
 	
 		y0 = np.array(y0)
 	

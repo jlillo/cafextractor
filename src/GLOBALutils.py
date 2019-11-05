@@ -1270,7 +1270,6 @@ def PCoeff2(pars):
                                    NSigma, S, N, Marsh_alg,min_col,max_col)
     FinalMatrix = np.asarray(Result)                      # After the function, we convert our list to a Numpy array.  
     FinalMatrix.resize(GDATA.shape[0],GDATA.shape[1])   # And return the array in matrix-form.
-    print np.shape(FinalMatrix)
     return FinalMatrix
 
 def obtain_P(data, trace_coeffs, Aperture, RON, Gain, NSigma, S, N, Marsh_alg,min_col,max_col,npools):

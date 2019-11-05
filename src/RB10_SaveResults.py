@@ -153,22 +153,35 @@ def create_SciHeader(raw_names, w_frames, WCdicts_sci, RVdicts, NORMdicts, cv):
 		hdr['CAFEX COORDFLAG'] = (coord_flag, 'How target coordinates were computed for BERV')
 		hdr['CAFEX HJD']  = (hjd , 'Heliocentric Julian Date [days]')
 		hdr["CAFEX MOONCORR"] = (RVdict["Moon_corr"],'Moon correction for CCF')
+		# RV
 		if ~np.isnan(RVdict["RV"]):
 			hdr['CAFEX RV']  = (RVdict["RV"] , 'Radial velocity (including corrections) [km/s]')
-			hdr["CAFEX ERV"] = (RVdict["eRV"], 'Radial velocity uncertainty [km/s]')
-			hdr["CAFEX ERV2"] = (RVdict["eRV2"], 'Radial velocity uncertainty [km/s]')
 		else:
 			hdr['CAFEX RV']  = ('nan' , 'Radial velocity [km/s]')
-			hdr["CAFEX ERV"] = ('nan', 'Radial velocity uncertainty [km/s]')			
+		
+		# eRV
+		if ~np.isnan(RVdict["eRV"]):
+			hdr["CAFEX ERV"] = (RVdict["eRV"], 'Radial velocity uncertainty [km/s]')
+		else:
+			hdr["CAFEX ERV"] = ('nan', 'Radial velocity uncertainty [km/s]')
+		
+		# eRV2
+		if ~np.isnan(RVdict["eRV2"]):
+			hdr["CAFEX ERV2"] = (RVdict["eRV2"], 'Radial velocity uncertainty [km/s]')
+		else:
 			hdr["CAFEX ERV2"] = ('nan', 'Radial velocity uncertainty [km/s]')			
 
 		try:
 			if ~np.isnan(RVdict["CCFFWHM"]):
 				hdr['CAFEX CCF FWHM']  = (RVdict["CCFFWHM"] , 'FWHM of CCF [km/s]')
-				hdr['CAFEX CCF HEIGHT']  = (RVdict["CCFheight"] , 'Normalised CCF height [-]')
 			else:
 				hdr['CAFEX CCF FWHM']  = ('nan' , 'FWHM of CCF [km/s]')
+
+			if ~np.isnan(RVdict["CCFheight"]):
+				hdr['CAFEX CCF HEIGHT']  = (RVdict["CCFheight"] , 'Normalised CCF height [-]')
+			else:
 				hdr['CAFEX CCF HEIGHT']  = ('nan' , 'Normalised CCF height [-]')
+
 		except:
 			print "No CCFFWHM found for file "+raw_names[i]
 	
@@ -182,15 +195,36 @@ def create_SciHeader(raw_names, w_frames, WCdicts_sci, RVdicts, NORMdicts, cv):
 		
 		# ===== SNR-corrected RV
 		snr = NORMdict["SNR"]
-		corr_coeff = np.flip([5.08237278e-01, -1.08262818e-02,  5.45218903e-05],0)
+		corr_coeff = np.flip([5.07794635e-01, -1.03076535e-02,  4.72775655e-05],0)
 		poly_corr = np.poly1d(corr_coeff)
 		corr = poly_corr(snr)
 		RVcorr = RVdict["RV"] - corr
 
 		if ~np.isnan(RVcorr):
-			hdr["CAFEX RVCORR"] = (RVcorr, 'Radial velocity corrected from the SNR-effect [km/s]')
+			hdr["CAFEX RVCORR"] = (RVcorr, 'RV - SNRcorr [km/s]')
 		else:
-			hdr['CAFEX RVCORR']  = ('nan' , 'Radial velocity corrected from the SNR-effect [km/s]')
+			hdr['CAFEX RVCORR']  = ('nan' , 'RV - SNRcorr [km/s]')
+
+		# ===== ThAr-change RV correction
+		# Read ThAr lamp changes for RV correction
+		thar_change_path = CS.RefFrames
+		t = np.genfromtxt(thar_change_path+'/ThAr_LampChanges.dat',dtype=None)
+		thar_jdstart, thar_jdend, ThAr_corr = t['f1'], t['f2'], t['f5']
+		this_thar = np.where((thar_jdstart < hjd) & (thar_jdend > hjd))[0]
+		corrThAr = ThAr_corr[this_thar]
+		if hjd <  thar_jdstart[0]: 
+			corrThAr = np.atleast_1d(np.nan)
+			print "    --> WARNING!!!! No ThAr RV correction found in ReferenceCalib.dat for this date!!! "
+
+		RVcorrThAr = RVdict["RV"] - corr - corrThAr[0]*1.e-3
+
+		if ~np.isnan(RVcorrThAr):
+			hdr["CAFEX RVCORR2"] = (RVcorrThAr, 'RV - SNRcorr - ThArcorr  [km/s]')
+			hdr["CAFEX THARCORR"] = (corrThAr[0], 'ThArcorr correction [m/s]')
+		else:
+			hdr['CAFEX RVCORR2']  = ('nan' , 'RV - SNRcorr - ThArcorr [km/s]')
+			hdr["CAFEX THARCORR"] = ('nan', 'ThArcorr correction [m/s]')
+
 
 		# ===== Add header keywords
 		hdr['CAFEX VERSION'] = (cv.version, 'Pipeline version')

@@ -25,7 +25,7 @@ def spec_norm(w_frames, cv, frame_names):
 	
 	CS.var.set_OrderProp(CAFEutilities.jdnight(cv.night))
 	NORMdicts = []
-	for frame in w_frames:
+	for ff,frame in enumerate(w_frames):
 		wave  = frame[3,:,:]
 		flux  = frame[1,:,:]
 		eflux = frame[2,:,:]
@@ -41,8 +41,8 @@ def spec_norm(w_frames, cv, frame_names):
 				snr_oo[oo] = CAFEutilities.der_snr(flux[oo,:])
 			
 				# ===== Flux normalization
-				exclude_CR = np.where(flux[oo,:] > np.nanmedian(flux[oo,:])+3.*sigmaG(flux[oo,~np.isnan(flux[oo,:])]))[0]
-				exclude_AL = np.where(flux[oo,:] < np.nanmedian(flux[oo,:])-3.*sigmaG(flux[oo,~np.isnan(flux[oo,:])]))[0]
+				exclude_CR = np.where(flux[oo,:] > np.nanmedian(flux[oo,np.isfinite(flux[oo,:])])+3.*sigmaG(flux[oo,np.isfinite(flux[oo,:])]))[0]
+				exclude_AL = np.where(flux[oo,:] < np.nanmedian(flux[oo,np.isfinite(flux[oo,:])])-3.*sigmaG(flux[oo,np.isfinite(flux[oo,:])]))[0]
 				myflux = flux[oo,:]*1.
 				myflux[exclude_CR] = np.nan
 				myflux[exclude_AL] = np.nan

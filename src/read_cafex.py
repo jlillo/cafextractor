@@ -15,7 +15,7 @@ class store_results:
 	files = glob.glob(wpath+'/'+obj+'*.fits')
 # 	hjd, snr, rv, erv, rvcorr, berv, texp = 7*[np.empty(len(files))*np.nan] #[], [], [], [], [], [], []
 # 	telfocus, telfocus_scale = 2*[np.empty(len(files))*np.nan] #[],[]
-	hjd, snr, rv, erv, rvcorr, berv, texp, telfocus, telfocus_scale = np.zeros((9, len(files))).tolist() 
+	hjd, snr, rv, erv, rvcorr, berv, texp, telfocus, telfocus_scale, erv2 = np.zeros((10, len(files))).tolist() 
 	fwhm, press = np.zeros(len(files)), np.zeros(len(files))
 	
 	for ii,file in enumerate(glob.glob(wpath+'/'+obj+'*.fits')):
@@ -23,6 +23,7 @@ class store_results:
 		hdr = a[0].header
 		hjd[ii] 	= np.float(hdr["HIERARCH CAFEX HJD"])				if "CAFEX HJD" 	in hdr.keys() else np.nan
 		erv[ii] 	= np.float(hdr["HIERARCH CAFEX ERV"]) 			if "CAFEX ERV" 	in hdr.keys() else np.nan
+		erv2[ii] 	= np.float(hdr["HIERARCH CAFEX ERV2"]) 			if "CAFEX ERV2" 	in hdr.keys() else np.nan
 		rv[ii] 		= np.float(hdr["HIERARCH CAFEX RV"] )				if "CAFEX RV" 	in hdr.keys() else np.nan
 		snr[ii] 	= np.float(hdr["HIERARCH CAFEX SNR"]) 			if "CAFEX SNR" 	in hdr.keys() else np.nan
 		berv[ii] 	= np.float(hdr["HIERARCH CAFEX BERV"]) 	if "CAFEX BERV" in hdr.keys() else np.nan
@@ -31,16 +32,17 @@ class store_results:
 		telfocus[ii] = np.float(hdr["HIERARCH CAHA TEL FOCU VALUE"]) if "CAHA TEL FOCU VALUE" in hdr.keys() else np.nan
 		telfocus_scale[ii] = np.float(hdr["HIERARCH CAHA TEL FOCU SCALE"]) if "CAHA TEL FOCU SCALE" in hdr.keys() else np.nan
 		fwhm[ii] 	= np.float(hdr["HIERARCH CAFEX CCF FWHM"]) 	if "CAFEX CCF FWHM" in hdr.keys() else np.nan
-		press[ii] 	= np.float(hdr["HIERARCH CAHA GEN AMBI PRES"]) 	if "CAHA GEN AMBI PRES" in hdr.keys() else np.nan
+		press[ii] 	= np.float(hdr["PRESS1"]) 	if "PRESS1" in hdr.keys() else np.nan
 	
 	self.hjd 	= np.transpose(hjd)
 	self.rv		= np.transpose(rv)		
 	self.erv	= np.transpose(erv)	
+	self.erv2	= np.transpose(erv2)	
 	self.snr	= np.transpose(snr)	
 	self.rvcorr	= np.transpose(rvcorr)	
 	self.berv	= np.transpose(berv	)
 	self.fwhm	= np.transpose(fwhm	)
-	self.press	= np.transpose(press	)
+	self.press	= np.transpose(press)
 	self.texp	= np.transpose(texp	)
 	self.telfocus	= np.transpose(telfocus	)
 	self.telfocus_scale	= np.transpose(telfocus_scale)	

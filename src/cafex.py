@@ -46,6 +46,11 @@ import imp
 	2019/07/26		jlillobox		v0.6 
 									- Modifications to automatically account for CAFE windows,
 									- New file in ReferenceFrames/ReferenceCalibs.lis
+	2019/08/09		jlillobox		v0.7
+									- New SNR-RV correction (see measure_RVcorr.py) now for SNR<120
+									- Clarification on the reference from id004
+	2019/08/12		jlillobox		v0.8
+									- Include ThAr correction due to lamp changes
 	
 """
 
@@ -105,7 +110,7 @@ if __name__ == "__main__":
 
 	args = cli()
 
-	pipeversion = 'v0.6'	# As in Github repository
+	pipeversion = 'v0.8'	# As in Github repository
 	
 	print ""
 	print "============================================================"
@@ -155,15 +160,18 @@ if __name__ == "__main__":
 	print "======================== \n"
 	
 	print "+ Duplicating RAW directory..."
-	RB01.copyDirectory(cv.path_raw+cv.dir_raw, cv.path_red+cv.dir_red)
-	if not os.path.exists(cv.aux_dir):
-		os.makedirs(cv.aux_dir)
-		os.makedirs(cv.redfiles_dir)
-	print "    --> "+cv.night+" duplicated!"
+	if not os.path.exists(cv.path_red+cv.dir_red):
+		RB01.copyDirectory(cv.path_raw+cv.dir_raw, cv.path_red+cv.dir_red)
+		if not os.path.exists(cv.aux_dir):
+			os.makedirs(cv.aux_dir)
+			os.makedirs(cv.redfiles_dir)
+		print "    --> "+cv.night+" duplicated!"
 
-	print "+ Re-naming raw files..."
-	RB01.renameRaw(cv)
-	print "    --> "+cv.night+" renamed!"
+		print "+ Re-naming raw files..."
+		RB01.renameRaw(cv)
+		print "    --> "+cv.night+" renamed!"
+	else:
+		print "+ Directory already exists. NOT copying the RAW, using the existing files..."
 
 	print "+ Classifying files and creating frames datacubes..."
 	bias,flat, arcs, sci, objnames, exptimes = RB01.ClassifyFiles(cv)
@@ -179,14 +187,22 @@ if __name__ == "__main__":
 	print "+ Check CAFE temperatures stability..."
 	try:
 		Tcoll, Tbenc, Tgrat, Troom = RB02.cafe_temperature(cv,bias,flat,arcs,sci)
-		print "    -->", '{0:<30} {1:>10} {2:>10} {3:>4}'.format("Collimator temp. delta/variation:",round((np.max(Tcoll)-np.min(Tcoll))*1.e3,0), round(np.std(Tcoll)*1.e3,0),' mK')
-		print "    -->", '{0:<30} {1:>10} {2:>10} {3:>4}'.format("Opt. Bench temp. delta/variation:",round((np.max(Tbenc)-np.min(Tbenc))*1.e3,0), round(np.std(Tbenc)*1.e3,0),' mK')
-		print "    -->", '{0:<30} {1:>10} {2:>10} {3:>4}'.format("Grating temp. delta/variation:",round((np.max(Tgrat)-np.min(Tgrat))*1.e3,0), round(np.std(Tgrat)*1.e3,0),' mK')
+		print "    -->", '{0:<30} {1:>10} {2:>10} {3:>4}'.format("Dome temp. delta/variation:",round((np.max(Tbenc)-np.min(Tbenc))*1.e3,0), round(np.std(Tbenc)*1.e3,0),' mK')
 		print "    -->", '{0:<30} {1:>10} {2:>10} {3:>4}'.format("CAFE room temp. delta/variation:",round((np.max(Troom)-np.min(Troom))*1.e3,0), round(np.std(Troom)*1.e3,0),' mK')
+		print "    -->", '{0:<30} {1:>10} {2:>10} {3:>4}'.format("Collimator temp. delta/variation:",round((np.max(Tcoll)-np.min(Tcoll))*1.e3,0), round(np.std(Tcoll)*1.e3,0),' mK')
+		print "    -->", '{0:<30} {1:>10} {2:>10} {3:>4}'.format("Grating temp. delta/variation:",round((np.max(Tgrat)-np.min(Tgrat))*1.e3,0), round(np.std(Tgrat)*1.e3,0),' mK')
 		print "    -->", "... done!"
 	except:
 		print "    --> Temperatures not found in header. Please check headers. Continnuing with the reduction..."
-            
+
+	print "+ Check CAFE preasure stability..."
+	try:
+		Pres1, Pres2 = RB02.cafe_preasures(cv,bias,flat,arcs,sci)
+		print "    -->", '{0:<30} {1:>10} {2:>10} {3:>4}'.format("Preasure delta/variation:",round((np.max(Pres1)-np.min(Pres1)),1), round(np.std(Pres1),1),' mbar')
+		print "    -->", '{0:<30} {1:>10} {2:>10} {3:>4}'.format("Diff. preasure delta/variation:",round((np.max(Pres2)-np.min(Pres2))*1.e3,3), round(np.std(Pres2)*1.e3,3),' mmbar')
+	except:
+		print "    --> Preasures not found in header. Please check headers. Continnuing with the reduction..."
+		
 	print "+ Calculating arc shifts for night "+cv.night+"..."
 	if os.path.isfile(cv.aux_dir+'arc_shifts.npz') == False:
 		shifts,intensity = RB02.cafe_shift(cv,arcs)
@@ -223,9 +239,15 @@ if __name__ == "__main__":
  	print "+ Checking the 2D shift for each arc frame..."
  	print "    --> Mean shift of the night (x,y) = ",xshift, yshift," pix."
  	print " "
- 	if any(np.abs(value) > 1. for value in np.mean(shifts,axis=0)):
+ 	if any(np.abs(value) > 5. for value in np.mean(shifts,axis=0)):
  		print colored("    --> WARNING: Large jump in the CCD. Please check if you need to",'red')
  		print colored("                 update static calibrations or modify the threshholds","red")
+ 	elif any(np.abs(value) > 1. for value in np.mean(shifts,axis=0)):
+ 		print colored("    --> WARNING: Relatively large jump in the CCD. Please check if you need to",'yellow')
+ 		print colored("                 update static calibrations or modify the threshholds","yellow")
+	else:
+ 		print colored("    --> OK!: XY shift from reference arc is below 1 pixel!",'green')
+		
 
 
 	print "========================"
@@ -280,7 +302,7 @@ if __name__ == "__main__":
 	print "==================== \n"
 	
 	# ==================================================
-	print "+ Refining ref. flat first order location..."
+	print "+ Refining REF. flat first order location..."
 	ReferenceFlat_tmp = fits.open(cv.flat_ref)
 	ReferenceFlat = [ReferenceFlat_tmp[0].data]
 	already_done = os.path.isfile(cv.aux_dir+'traces_ref.npz')
@@ -292,7 +314,7 @@ if __name__ == "__main__":
 		tab = np.load(cv.aux_dir+'traces_ref.npz',allow_pickle=True)
 		o_coeff,Nord = tab['o_coeff'], tab['Nord']
 
-	o_coeff,Nord, FirstRefOrder = RB04.SelectOrders(o_coeff,Nord, 0.0, cv)
+	o_coeff,Nord, FirstRefOrder = RB04.SelectOrders(o_coeff,Nord, 0.0, cv) # yshift = 0.0
 	print 'orders:',np.shape(o_coeff),Nord
 	
 	# ==================================================
@@ -349,8 +371,6 @@ if __name__ == "__main__":
 		hdul.writeto(cv.aux_dir+'X_FlatNorm'+str(i)+'.fits', overwrite=True)
 	
 	print " "
-
-
 
 	
 	print "=============================================="
@@ -409,8 +429,10 @@ if __name__ == "__main__":
 		
 	print "+ Wavelength solution for each MasterArc"
 	w_MasterArc = RB06.WavelengthCalibration(x_MasterArc,arcs_cl,MasterArc_names,cv,xshift,yshift, 'MasterARC')
-	#w_arc       = RB06.WavelengthCalibration(x_arc,arcs,arc_names,cv,xshift,yshift, 'ARC')
 
+	# Test the precision of the wavecal (as suggested by referee)
+	#w_arc       = RB06.WavelengthCalibration(x_arc,arcs,arc_names,cv,xshift,yshift, 'ARC')
+	#sys.exit()
 
 	print "========================================"
 	print "RB07: Arcs - RVs || Science - Attach WC "
@@ -511,6 +533,7 @@ if __name__ == "__main__":
 		plt.show()
 		plt.close()
 
+
 	print "=========================================="
 	print "RB09: Science - Spec Norm. & CCF analysis "
 	print "========================================== \n"
@@ -544,9 +567,6 @@ if __name__ == "__main__":
 		#plt.savefig('tmp_HD109358.pdf',bbox_inches="tight")
 		plt.close()
 
-	print snrtmp
-	print rvtmp
-	print ervtmp
 	if 0:
 		plt.errorbar(snrtmp[~np.isnan(rvtmp)],rvtmp[~np.isnan(rvtmp)], yerr=ervtmp[~np.isnan(rvtmp)], fmt='o')
 		#plt.errorbar(snrtmp,RVolds-np.mean(RVolds)+np.mean(rvtmp[0:5]), yerr=0.027, fmt='o')
@@ -557,8 +577,6 @@ if __name__ == "__main__":
 		print np.std(RVolds-np.mean(RVolds)) * 1.e3
 		print ervtmp*1.e3
 
-
-	#sys.exit()
 	
 	print "========================================"
 	print "RB10: Saving the FINAL results "
@@ -574,6 +592,12 @@ if __name__ == "__main__":
 	#sys.stdout = orig_stdout
 	#flog.close()
 
+	print " "
+	print "========================================"
+	print "             THE END! "
+	print "         Enjoy your CAFE!"
+	print "======================================== \n"
+	
 	sys.exit()
 
 

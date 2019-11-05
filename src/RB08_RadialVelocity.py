@@ -43,9 +43,13 @@ def get_RV(sp,inst, cv, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon =
 	order_offset = CS.var.order0 - 60
 	exclude_orders = np.array([27,28,30,32,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83])-order_offset#,79,80,81,82,83])
 	
- 	sel_orders = np.arange(norders-(23-order_offset))+(23-order_offset)
+ 	sel_orders = np.arange(norders-(24-order_offset))+(24-order_offset)
 	_sel_orders_list = list(sel_orders)
-	for i in exclude_orders: _sel_orders_list.remove(i)
+	for i in exclude_orders: 
+		try:
+			_sel_orders_list.remove(i)
+		except:
+			ddd = 0
 	sel_orders = np.array(_sel_orders_list)
 
 
@@ -93,7 +97,7 @@ def get_RV(sp,inst, cv, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon =
 	if myRVguess != 0.0:
 		RVguess = myRVguess
 	else:
-		dvel, vwidth = rvtbx.create_dvel(inst,wave,RVguess=0.0,RVampl=200.,verbose=True)
+		dvel, vwidth = rvtbx.create_dvel(inst,wave,RVguess=0.0,RVampl=200.,verbose=False)
 		my_vwidth = wmask*0.0 + vwidth
 		#widthJ = wmaskJ*0.0 + vwidth
 		#widthJ2 = wmaskJ2*0.0 + vwidth
@@ -112,7 +116,7 @@ def get_RV(sp,inst, cv, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon =
 			CCFo,eCCFo = rvtbx.CCF(w,f,ef,dvel,my_vwidth, wmask, fmask)
 
 		
-		popt, perr = rvtbx.fit_CCF(dvel,CCFo,CCFo*0.0+1.,guessRV=False, with_Moon = False)
+		popt, perr = rvtbx.fit_CCF(dvel,CCFo,CCFo*0.0+1., with_Moon = False)
 		RVguess = dvel[np.argmin(CCFo)]#popt[1]
 		CCFfwhm = popt[2]*2.*np.sqrt(2.*np.log(2.))
 		dvel0	= dvel.copy()
@@ -127,7 +131,7 @@ def get_RV(sp,inst, cv, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon =
 			
 		
 	
-	print "Estimated RV (no BERV corrected) = ",np.str(round(RVguess,3))," km/s"
+	print "        --> Estimated RV (no BERV corrected) = ",np.str(round(RVguess,3))," km/s"
 
 	# ==============================
 	# 	Cross-Correlation Funtion
@@ -154,7 +158,7 @@ def get_RV(sp,inst, cv, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon =
 # 	widthJ2 = wmaskJ2*0.0 + vwidth
 # 	my_vwidth = np.concatenate((widthH,widthJ,widthJ2))
 
-	print "Calculating CCF..."
+	print "        --> Calculating CCF..."
 
 	# Calculate CCF per order
 	# pbar = ProgressBar()
@@ -175,7 +179,7 @@ def get_RV(sp,inst, cv, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon =
 		
 		if np.count_nonzero(f) !=0:
 			CCFo,eCCFo   = rvtbx.CCF(w,f,ef,dvel,my_vwidth, wmask, fmask)
-			popto, perro = rvtbx.fit_CCF(dvel,CCFo,eCCFo, guessRV=guessRV, with_Moon = with_Moon)
+			popto, perro = rvtbx.fit_CCF(dvel,CCFo,eCCFo, with_Moon = with_Moon)
 		else:
 			CCFo,eCCFo = np.zeros(len(dvel)), np.zeros(len(dvel))
 			popto, perro = np.zeros(4)*np.nan, np.zeros(4)*np.nan
@@ -202,7 +206,7 @@ def get_RV(sp,inst, cv, sel_orders=-10, guessRV=True, myRVguess=0.0, with_Moon =
 	
 
 	# ===== Gaussian fit to the stacked CCF
-	print "Measuring RV from CCF..."
+	print "        --> Fitting CCF..."
 	popt, perr = rvtbx.fit_CCF(dvel,CCF,eCCF, with_Moon = with_Moon)
 
 	# ===== RV results and corrections
@@ -333,6 +337,7 @@ def ScienceRV(frames, cv, frame_names):
 
 	for i,frame in enumerate(frames):
 		already_done = os.path.isfile(cv.aux_dir+'RVdict_'+frame_names[i]+'.npz')
+		print "    ==> RVs for..."+frame_names[i]
 		if already_done == False:
 			hdr = fits.getheader(cv.path_red+cv.dir_red+'/'+frame_names[i])
 			berv, hjd, coord_flag = CAFEutilities.get_berv(hdr)
@@ -352,11 +357,15 @@ def ScienceRV(frames, cv, frame_names):
 			np.savez(cv.aux_dir+'RVdict_'+frame_names[i],RVdict=RVdict)
 
 		else:
-			print "    --> RVdict found for "+frame_names[i]+". Loading..."
+			print "        --> RVdict found for "+frame_names[i]+". Loading..."
 			load_dict = np.load(cv.aux_dir+'RVdict_'+frame_names[i]+'.npz',allow_pickle=True)
 			RVdict = load_dict["RVdict"].item()
 
-		print RVdict['RV'],RVdict['eRV']
+		try:
+			print "        --> RV = ",np.str(round(RVdict['RV'],3))+' +/- '+np.str(round(RVdict['eRV'],3))+' km/s'
+		except:
+			print "        --> RV is not a number..."
+	
 					
 # 		RVs.append(RV)
 # 		eRVs.append(eRV)

@@ -12,6 +12,7 @@ from scipy import signal
 import matplotlib.gridspec as gridspec # GRIDSPEC !
 
 import CAFEutilities
+import CAFEx_SetupFile as CS
 
 def twoD_Gaussian((x, y), amplitude, xo, yo, sigma_x, sigma_y, theta, offset):
     xo = float(xo)
@@ -54,16 +55,24 @@ def cafe_shift(cv,arcs):
 	jdnight = CAFEutilities.jdnight(cv.night)
 	id = fref['ID'][np.max(np.where((fref['Datestart'] < jdnight) & (fref['Dateend'] > jdnight))[0])]
 
-	ref = fits.open(cv.arc_ref)
-	ref_data = ref[0].data
-	if id == 1:
-		ref_data = ref_data[:,::-1]
+	CS.var.set_Orientation(CAFEutilities.jdnight(cv.night))
+
+	# Orientation of the CCD (according to grating orientation up/down). Right ==> >2018 
+	if CS.var.orientation == 'right':
+		ref_data = np.flip(fits.getdata(cv.arc_ref),1)
+	elif CS.var.orientation == 'left':
+		ref_data = fits.getdata(cv.arc_ref)
+	else:
+		print "   ---> ERROR: I found no orientation value in the ReferenceCalib.lis "
+		print "				  file for thi date. Please check that your observations fall "
+		print " 			  into one of the cafe CCD windows defined in that file. "
+		sys.exit()	
 
 	#new = fits.open(arcs['files'][0])
 	#new_data = new[0].data
 	dc = arcs['dc']
 	new_data = dc[0,:,:]
-
+	
 	# Autocorrelation of the reference arc:
 	x0,y0, e_x0,e_y0, int0 = get_shift(ref_data,ref_data)
 	
@@ -154,7 +163,7 @@ def cafe_temperature(cv,bias,flats,arcs,sci):
 	
 
 	if 1:
-		fig = plt.figure(figsize=(12,8))
+		fig = plt.figure(figsize=(12,10))
 		gs = gridspec.GridSpec(4,1, height_ratios=[1.,1.,1.,1], width_ratios=[1])
 		gs.update(left=0.1, right=0.95, bottom=0.08, top=0.93, wspace=0.08, hspace=0.12)
 		
@@ -182,6 +191,74 @@ def cafe_temperature(cv,bias,flats,arcs,sci):
 		plt.close()
 	
 	return Tcoll, Tbenc, Tgrat, Troom
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+def cafe_preasures(cv,bias,flats,arcs,sci):
+	Pres1	= []
+	Pres2	= []
+	jd		= []
+	for i,fr in enumerate(arcs['files']):
+		frame = fits.open(fr)
+		try:
+			Pres1.append(np.float(frame[0].header['PRESS1']))
+			Pres2.append(np.float(frame[0].header['PRESS2']))
+			jd.append(CAFEutilities.get_jd(frame[0].header))
+		except:
+			0
+	for i,fr in enumerate(bias['files']):
+		frame = fits.open(fr)
+		try:
+			Pres1.append(np.float(frame[0].header['PRESS1']))
+			Pres2.append(np.float(frame[0].header['PRESS2']))
+			jd.append(CAFEutilities.get_jd(frame[0].header))
+		except:
+			0
+	for i,fr in enumerate(flats['files']):
+		frame = fits.open(fr)
+		try:
+			Pres1.append(np.float(frame[0].header['PRESS1']))
+			Pres2.append(np.float(frame[0].header['PRESS2']))
+			jd.append(CAFEutilities.get_jd(frame[0].header))
+		except:
+			0
+	for i,fr in enumerate(sci['files']):
+		frame = fits.open(fr)
+		try:
+			Pres1.append(np.float(frame[0].header['PRESS1']))
+			Pres2.append(np.float(frame[0].header['PRESS2']))
+			jd.append(CAFEutilities.get_jd(frame[0].header))
+		except:
+			0
+
+	jd = np.array(jd)
+	Pres1	= np.array(Pres1)
+	Pres2	= np.array(Pres2)
+	srt = np.argsort(jd)
+		
+	jd 		= jd[srt].astype(np.float)
+	Pres1	= Pres1[srt].astype(np.float)
+	Pres2	= Pres2[srt].astype(np.float)
+
+	if 1:
+		fig = plt.figure(figsize=(12,10))
+		gs = gridspec.GridSpec(2,1, height_ratios=[1.,1.], width_ratios=[1])
+		gs.update(left=0.1, right=0.95, bottom=0.08, top=0.93, wspace=0.08, hspace=0.12)
+		
+		ax4 = plt.subplot(gs[0,:]) 
+		plt.plot(jd,Pres1,'o',label='Absolute pressure [mbar]',c='dodgerblue')
+		plt.legend()
+		plt.grid(ls=':',c='gray',alpha=0.5)
+
+		ax5 = plt.subplot(gs[1,:]) 
+		plt.plot(jd,Pres2,'o',label='Diff. press. Cabinet-Room [mbar]',c='turquoise')
+		plt.legend()
+		plt.grid(ls=':',c='gray',alpha=0.5)
+
+		plt.savefig(cv.aux_dir+'cafe_preasures_'+cv.night+'.pdf',bbox_inches='tight')
+		plt.close()
+		np.savez(cv.aux_dir+'cafe_preasures_'+cv.night,jd=jd,pres1=Pres1)
+	return Pres1, Pres2
 
 
 

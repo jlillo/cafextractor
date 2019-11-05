@@ -36,6 +36,13 @@ def renameRaw(cv):
 	for i,file in enumerate(files):
 		h = fits.open(file)
 		head = h[0].header		
+		# Change ThAr with wrong IMAGETYP set:
+		if head['IMAGETYP'] == 'Science': 
+			obj = head['OBJECT'].replace(" ","_")
+			if 'thar' in str.lower(obj):
+				head['IMAGETYP'] = 'Calibration'
+
+		# Proceed with renaming
 		if head['IMAGETYP'] == 'Science': 
 		    obj = head['OBJECT'].replace(" ","")
 		    obj = obj.replace("[std]_","")
@@ -50,6 +57,8 @@ def renameRaw(cv):
 			newname = 'flat__'+cv.night+'_'+str(i+1).zfill(4)+'.fits'
 		elif head['IMAGETYP'] == 'Calibration':
 			newname = 'arc__'+cv.night+'_'+str(i+1).zfill(4)+'.fits'
+		elif head['IMAGETYP'] == 'Test':
+			newname = 'test__'+cv.night+'_'+str(i+1).zfill(4)+'.fits'
 
 	# ===== Rename accordingly
 		os.rename(file, dir+'/'+newname)
@@ -75,7 +84,6 @@ def frames_dict(files,dates,cv,id):
 # 	dc = np.array(dc).astype(float)
 
 	# Orientation of the CCD (according to grating orientation up/down). Right ==> 2018 on
-	CS.var.orientation = 'left'
 	if CS.var.orientation == 'right':
 		dc = np.array([np.flip(fits.getdata(f),1) for f in files]).astype(float)
 	elif CS.var.orientation == 'left':
@@ -117,6 +125,13 @@ def ClassifyFiles(cv):
 	for i,file in enumerate(files):
 		h = fits.open(file)
 		head = h[0].header		
+		# Change ThAr with wrong IMAGETYP set:
+		if head['IMAGETYP'] == 'Science': 
+			obj = head['OBJECT'].replace(" ","_")
+			if 'thar' in str.lower(obj):
+				head['IMAGETYP'] = 'Calibration'
+
+		# Proceed with classification:
 		if head['IMAGETYP'] == 'Science': 
 			sci.append(file)
 			obj = head['OBJECT'].replace(" ","_")
@@ -124,6 +139,7 @@ def ClassifyFiles(cv):
 			obj = obj.replace("[std]","")
 			obj = obj.replace(".","_")
 			objname.append(obj)
+			print file
 			ra     	= CAFEutilities.ra_from_sec(head['RA'])
 			dec  	= CAFEutilities.ra_from_sec(head['DEC'])
 			airmass	= np.float(head['AIRMASS'])

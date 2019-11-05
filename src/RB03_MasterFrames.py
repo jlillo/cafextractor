@@ -80,16 +80,18 @@ def FrameCombine(frames,frames_cl,cv,biasList='None',biasFrames='None'):
 		#print dc[0,:,:]
 		#MasterFrame, low, upp = sigmaclip(dc[members,:,:],sigclip,sigclip)
 		data = dc[members,:,:]
-		means = [np.nanmean(data[ii,:,:]) for ii in range(len(data[:,0,0]))]
+		means = [np.nanmedian(data[ii,:,:]) for ii in range(len(data[:,0,0]))]
 		std = [np.nanstd(data[ii,:,:]) for ii in range(len(data[:,0,0]))]
 		if id == 'bias':
-			ClippedFrames = data[((np.abs(means - np.nanmean(data)) < sigclip * np.nanstd(data)) & (std < sigclip * np.nanstd(data))),:,:]
+			ClippedFrames = data[((np.abs(means - np.nanmedian(data)) < sigclip * np.nanstd(data)) & (std < sigclip * np.nanstd(data))),:,:]
 			if len(ClippedFrames[:,0,0]) > CS.MinMembersBias:
 				MF = np.nanmean(ClippedFrames,axis=0)
 				MasterFrame.append(MF)
 				print "%22s %20f %10i %15.2f %15.2f" % (np.str(k),frames_cl['centers'][k], len(ClippedFrames[:,0,0]), np.nanmean(MasterFrame[k]),np.nanstd(MasterFrame[k]) )
 		if id == 'flat':
-			ClippedFrames = data[(np.abs(means - np.nanmean(data)) < sigclip * np.nanstd(data) ) ,:,:]
+			good = np.where(np.abs(means - np.nanmedian(data)) < sigclip * np.nanstd(data))[0]
+			ClippedFrames = data[good ,:,:]
+			print 
 			nframes = len(ClippedFrames[:,0,0])
 			# Bias substraction
 			for i in range(nframes):

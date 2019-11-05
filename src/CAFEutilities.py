@@ -172,9 +172,9 @@ def observatory_twill(night):
 def get_closer_frame(date,dateList):
 	elements = np.array(range(len(dateList)))
 	diff = np.abs(date-dateList)
-	return elements[np.nonzero(diff == np.min(diff))]
+	return elements[np.where(diff == np.min(diff))[0]]
 
-def get_berv(hdr):
+def get_berv(hdr,RA=-99.99,DEC=-99.99):
 	# ===== BERV
 	
 	try:
@@ -184,10 +184,18 @@ def get_berv(hdr):
 		ra, dec = simbad_query_radec(obname)
 		coord_flag = 'Simbad'
 	except:
-		ra  = np.float(hdr["RA"])/60./60. * 15.
-		dec = np.float(hdr["DEC"])/60./60.
-		coord_flag = 'Telescope'
-		print "     --> WARNING: getting RA/DEC from POSTN-RA/POSTN-DE header keywords!: RA="+str(ra)+" DEC="+str(dec)
+		if RA == -99.99:
+			ra  = np.float(hdr["RA"])/60./60. * 15.
+			dec = np.float(hdr["DEC"])/60./60.
+			coord_flag = 'Telescope'
+			print "     --> WARNING: getting RA/DEC from POSTN-RA/POSTN-DE header keywords!: RA="+str(ra)+" DEC="+str(dec)
+		else:
+			ra  = np.float(RA)	# in degrees 
+			dec = np.float(DEC)	# in degrees
+			coord_flag = 'User'			
+			print "     --> WARNING: getting RA/DEC from provided coordinates!: RA="+str(ra)+" DEC="+str(dec)
+
+
 
 	#ra, dec = pyasl.coordsSexaToDeg(ra2000+" "+dec2000)
 	# CAHA coordinates

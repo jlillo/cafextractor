@@ -13,6 +13,7 @@ from astroML.stats import sigmaG
 from astropy import constants as c
 from astropy.table import Table, Column
 from astropy.io import ascii
+from termcolor import colored
 
 import GLOBALutils
 import CAFEutilities
@@ -90,16 +91,29 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 	
 	Nord 				= CS.var.Nominal_Nord	#82
 	delta_refThAr		= np.zeros(Nord)
-
+	
 	
 	xc_global			= np.zeros((Nord,400))
 
 	# ==================================
 	#     LOOP in ORDERS
 	# ==================================
+	'''
+	Loop in order to find a rough solution based on previous solutions from the 
+	reference arc.
+	'''
+
+	print "    --> Individual order analysis..."
+
+	print "        --> Cross-correlation of OBSERVED ThAr lines against ThAr LINELIST"
+	print "        --> X-shifts are calculated for every order and should be very similar."
+	print "        --> If X-shifts are very different among the orders ==> Bad order identification"
+	print " "
+	print "            Order ID, X-shift against linelist"
+
 	for i in np.arange(Nord):
 
-		#print 'Order',i
+		#| Debugging lines...
 		#x_arc[1,i,:] = np.flip(x_arc[1,i,:],0)
 
 		#| Select the optimal zero-order solution according to observing date
@@ -112,7 +126,7 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 		filename_ceres = '../ReferenceFrames/ThAr_ReferenceLines/cafe2_'+str(id).zfill(3)+'/ceres_order_'+np.str(i+CS.var.order0).zfill(3)+'.dat'#+'.iwdat'
 		filename_cafex = '../ReferenceFrames/ThAr_ReferenceLines/cafe2_'+str(id).zfill(3)+'/cafeX_order_'+np.str(i+CS.var.order0).zfill(3)+'.dat'
 		
-		##	filename = cv.ref_frames+'/order_'+np.str(i+60).zfill(3)+'.iwdat'
+		#| Choose HARPS or CERES files for ThAr mask depending on order
 		if os.path.isfile(filename_cafex):
 			f = open(filename_cafex).readlines()
 			file_id = 'cafex'
@@ -121,7 +135,7 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 				f = open(filename_ceres).readlines()
 				file_id = 'ceres'
 			except:
-				print "    --> WARNING: file"+filename_ceres+" not found. Skipping order..."
+				print "        --> WARNING: file"+filename_ceres+" not found. Skipping order..."
 				Nlines_total_order.append(0)
 				continue
 	
@@ -155,11 +169,7 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 		if len(np.nonzero(x_arc[1,i,:].reshape(-1))[0]) == 0: 
 			delta = 0
 			delta_refThAr[i] = np.nan
-			#Wavelength.append(np.zeros(2048)*np.nan)
-			#Nlines_used_order.append(np.nan)
-			#lam_residuals_order.append(np.nan)
-			#rv_residuals_order.append(np.nan)
-			print "    --> WARNING: skipping fake order #"+str(i)
+			print "        --> WARNING: skipping fake order #"+str(i)
 			continue
 	
 		#| Create binary mask based on present ThAr lines in the arc
@@ -169,11 +179,7 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 		#| Find peaks in the ThAr extracted spectrum		
 		peakind = find_peaks_cwt(x_arc[1,i,:],np.arange(0.5,10),min_snr=5.)
 		if len(peakind) == 0:
-			print "    --> WARNING: no ThAr line found in order #"+str(i)
-			#Wavelength.append(np.zeros(2048)*np.nan)
-			#Nlines_used_order.append(np.nan)
-			#lam_residuals_order.append(np.nan)
-			#rv_residuals_order.append(np.nan)
+			print "        --> WARNING: no ThAr line found in order #"+str(i)
 			continue
 		obsmask = np.zeros(2048)
 		obsmask[peakind] = 1.0
@@ -195,15 +201,21 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 			delta = 0.0
 			
 		delta_refThAr[i] = delta
-		print i,delta
+		
+		print "            Order = "+str(i),",   Xshift = ",delta
 
+
+		"""
+		Some debugging stuff...
+		"""
+		#| Debugging lines...
 # 		xc_stack = np.sum(xc_global,axis=0)
 # 		print np.shape(xc_stack)
 # 		tofit = np.where((offs > delta-10) & (offs < delta+10))[0]
-		#popt1, pcov1 = curve_fit(gauss_function, offs, xc_stack, p0 = [np.max(xc_stack), offs[np.argmax(xc_stack)], 2., 0.0])
-		#delta = popt1[1]
-		#delta_refThAr[i] = delta
-# 		plt.close()
+# 		popt1, pcov1 = curve_fit(gauss_function, offs, xc_stack, p0 = [np.max(xc_stack), offs[np.argmax(xc_stack)], 2., 0.0])
+# 		delta = popt1[1]
+# 		delta_refThAr[i] = delta
+		#plt.close()
 # 		plt.plot(np.arange(len(x_arc[1,i,:])),x_arc[1,i,:],c='k')
 # 		for ppp in pix2: plt.axvline(ppp,ls=':',c='red')
 # 		plt.show()
@@ -213,16 +225,15 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 # 		plt.axvline(delta)
 # 		plt.show()
 # 		sys.exit()
-	
-	
-		
 
-		#| Debugging plots
+		#| Debugging plots...
+# 		plt.close()
+# 		plt.figure(1)
 # 		plt.plot(xpix,x_arc[1,i,:])
-# 		for l in pix2: plt.axvline(l+delta,ls=':')
+# 		for l in pix2: plt.axvline(l,ls=':')
 # 		print i, "Delta = ",delta,' pix'
-#		plt.show()
-#		sys.exit()
+# 		plt.show()
+# 		sys.exit()
 # 	
 # 		plt.figure(2)
 # 		plt.plot(offs,xc)
@@ -231,11 +242,9 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 # 		plt.close()
 # 		sys.exit()
 	
-	# ==================================
-	#     Gaussian fit to ThAr lines
-	# ==================================
-
-#	for i in np.arange(Nord):
+		# ==================================
+		#     Gaussian fit to ThAr lines
+		# ==================================
 
 		#| Initialize values  
 		now_peak 	= []		# Fitted center of the ThAr line [pix]
@@ -315,17 +324,6 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 				flag 		= 'no_fitted'
 				chi2 		= np.inf 
 
-# 			if j == 6:
-# 				
-# 				print popt2G
-# 				plt.errorbar(x,y,yerr=RON+3.*np.sqrt(y))
-# 				plt.plot(x,ymodel1G,c='red')
-# 				plt.plot(x,ymodel2G,c='k',ls='--')
-# 				plt.axvline(popt2G[1],ls=':',c='k')
-# 				plt.axvline(popt2G[5],ls='--',c='k')
-# 				plt.show()
-# 				sys.exit()
-
 
 			if ((flag != 'no_fitted') & (chi2 < 5.)):
 				now_peak.append(popt[1])  
@@ -346,14 +344,18 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 		true_peakL 	= np.array(true_peakL)
 		now_order	= np.array(now_order)
 
+		"""
+		Some debugging stuff...
+		"""
 		#plt.errorbar(true_peakL, now_peak-true_peakX,yerr=now_peak_err,fmt ='o')
 		#plt.show()
 		#plt.close()
 		#sys.exit()
 	
-		# ==================================
-		#    Local Wavelength Solution
-		# ==================================
+		
+		# ==============================================
+		#    Local Wavelength Solution for each order
+		# ==============================================
 		'''
 		First-order fit to the wavelength solution per order. This is used to
 		perform a 3-sigma clipping to remove the ThAr lines that are not well fitted
@@ -378,7 +380,7 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 					#Nlines_used_order.append(np.nan)
 					#lam_residuals_order.append(np.nan)
 					#rv_residuals_order.append(np.nan)
-					print "    --> WARNING: too few ThAr lines ("+str(len(xuse))+") found in order #"+str(i)+" ...skipping order"
+					print "        --> WARNING: too few ThAr lines ("+str(len(xuse))+") found in order #"+str(i)+" ...skipping order"
 					break
 						
 			
@@ -426,37 +428,50 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 	
 	
 	
-			# ==================================
-			#     Checking and debugging plots
-			# ==================================
+			"""
+			Some debugging stuff...
+			"""
 
 # 			if i < 10:
 # 				plt.plot(now_peak[use == 1],residuals,'o',c='black')
-# # 				plt.plot(p(xpix), x_arc[1,i,:].reshape(-1))
-# # 				for lll in true_peakL: plt.axvline(lll,ls=':',c='red')
-# # 				for ttt in true_peakL[use == 1]: plt.axvline(ttt,ls=':',c='green')
+#  				plt.plot(p(xpix), x_arc[1,i,:].reshape(-1))
+#  				for lll in true_peakL: plt.axvline(lll,ls=':',c='red')
+#  				for ttt in true_peakL[use == 1]: plt.axvline(ttt,ls=':',c='green')
 # 				plt.show()
 # 				plt.close()
 # 			else:
 #				break
-			#| Plot residuals
-			#plt.plot(now_peak[use == 1],residuals/ true_peakL[use == 1] * c.c/np.sqrt(2500.),'o',c='black')
+# 			#| Plot residuals
+# 			plt.plot(now_peak[use == 1],residuals/ true_peakL[use == 1] * c.c/np.sqrt(2500.),'o',c='black')
+# 
+# 			#| Plot pixel in X and wavelength in Y
+# 			xall = np.arange(2048)
+# 			plt.plot(now_peak[use == 1], true_peakL[use == 1] ,'o',c='red')
+# 			plt.plot(xall, GLOBALutils.Cheby_eval(coeff,xall,2048.) ,c='black')
+# 	
+# 			#| Plot pixel in X and wavelength in Y
+# 			plt.text(now_peak[use == 1],true_peakL[use == 1]-p(now_peak[use == 1]), np.repeat(i,len(np.where(use == 1)[0])))
+# 			plt.plot(now_peak[good_lines],true_peakL[good_lines]-p(now_peak[good_lines]),'o',c='r')
+	
 
-			#| Plot pixel in X and wavelength in Y
-			#xall = np.arange(2048)
-			#plt.plot(now_peak[use == 1], true_peakL[use == 1] ,'o',c='red')
-			#plt.plot(xall, GLOBALutils.Cheby_eval(coeff,xall,2048.) ,c='black')
+
+	#| Warning for bad order identification:
+	if np.nanstd(delta_refThAr) > 5.:
+		print colored("        --> IMPORTANT WARNING: Xshifts in ThAr are very sparse ==> ", "red")
+		print colored("            ==> Probably due to a bad identification of the orders", "red")
+		print colored("                Please check if orders moved and contact J. Lillo-Box", "red")
+	else:
+		print colored("        --> OK! X-shifts from all orders agree!  ==> ", "green")
 	
-			#| Plot pixel in X and wavelength in Y
-			#plt.text(now_peak[use == 1],true_peakL[use == 1]-p(now_peak[use == 1]), np.repeat(i,len(np.where(use == 1)[0])))
-			#plt.plot(now_peak[good_lines],true_peakL[good_lines]-p(now_peak[good_lines]),'o',c='r')
-	
+
+	#| Debugging plots...
 # 	plt.figure(1)
 # 	plt.hist(np.concatenate(np.array(All_residuals0),axis=0),bins=30)
 # 	plt.figure(2)
 # 	plt.hist(np.concatenate(np.array(All_residuals_ms0),axis=0),bins=30)
 # 	plt.show()
 # 	sys.exit()
+
 
 	# ==================================
 	#     GLOBAL WAVELENGTH SOLUTION
@@ -465,14 +480,11 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 	Global solution in 2D taking into account both the pixel and order numbers. 
 	The 
 	'''
+	print "    --> Starting the GLOBAL (2D) wavelength fit..."
 
 	# ===== Compute Global Wavelentgh Solution
 	p0    = np.zeros( npar_wsol )
 	
-	#_All_Pixel_Centers 	= np.concatenate(np.array(All_now_peak),axis=0)
-	#_All_Wavelengths 	= np.concatenate(np.array(All_true_peakL),axis=0)
-	#_All_Orders 		= np.concatenate(np.array(All_now_orders),axis=0)
-
 	_All_Pixel_Centers 	= np.concatenate(np.array(All_Pixel_Centers0),axis=0)
 	_All_Wavelengths 	= np.concatenate(np.array(All_Wavelengths0),axis=0)
 	_All_Orders 		= np.concatenate(np.array(All_Orders0),axis=0)
@@ -526,6 +538,7 @@ def FindWaveSolution(x_arc,xshift,yshift,cv, plot_name='tmp.pdf'): #x_arc,arcs,a
 		except:
 			WC_validity.append(" ")
 		
+	print "    --> ...done with rms = ",np.sqrt(np.var(G_res*1.e3)), " mA precision"
 
 	# ==================================
 	#     Log results

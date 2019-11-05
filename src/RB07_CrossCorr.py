@@ -349,7 +349,9 @@ def AttachWC(x_sci,sci,sci_names,						# Science frames
 	for i,sciFr in enumerate(x_sci):
 		
 		# ===== Science RV against evening MasterArc:
-		sciRV = np.interp(sci["jd"][i], arcs["jd"], arcRVs[0])
+		good = np.where(np.isfinite(arcRVs) == True)[0]
+		jd_arc, rv_arc = arcs["jd"][good], arcRVs[0][good]
+		sciRV = np.interp(sci["jd"][i], jd_arc, rv_arc)
 		Selected_MasterARC_type = CS.Selected_MasterARC	# For now, I use the first MasterArc
 														# (usually the evening combined frame). But this
 														# must be improved by selecting the closest or the
@@ -421,17 +423,18 @@ def plot_ArcRV(sci, arcs, arcRVs, arcs_cl, MasterRVs, cv):
 		head, tail = ntpath.split(sci["files"][ii])
 		name, _ = tail.split('__')
 		plt.text(i,np.min(arcRVs[0]), name, rotation=90, color='gray',alpha=0.4, fontsize=10, verticalalignment='bottom', zorder=1)
-	plt.errorbar(arcs["jd"],arcRVs[0],yerr=arcRVs[1],fmt='o',c='red', zorder=5)
+	good = np.where(np.isfinite(arcRVs) == True)[0]
+	plt.errorbar(arcs["jd"][good],arcRVs[0][good],yerr=arcRVs[1][good],fmt='o',c='red', zorder=5)
 	plt.errorbar(arcs_cl["centers"],MasterRVs[0],yerr = MasterRVs[1],fmt='o',c='blue',zorder = 10)
 	plt.xlabel('JD')
 	plt.ylabel('RV (km/s)')
 	
 	ax2 = plt.subplot(gs[1,1])
-	elem = np.where(arcs_cl["membership"] == 0)[0]
+	elem = np.where((arcs_cl["membership"] == 0) & (np.isfinite(arcRVs) == True) )[0]
 	plt.errorbar(arcs["jd"][elem],arcRVs[0][elem],yerr=arcRVs[1][elem],fmt='o',c='red', zorder=5)
 
 	ax3 = plt.subplot(gs[1,0])
-	elem = np.where(arcs_cl["membership"] == 1)[0]
+	elem = np.where((arcs_cl["membership"] == 1) & (np.isfinite(arcRVs) == True))[0]
 	plt.errorbar(arcs["jd"][elem],arcRVs[0][elem],yerr=arcRVs[1][elem],fmt='o',c='red', zorder=5)
 
 	plt.savefig(cv.aux_dir+'/arcRVs_'+cv.night+'.pdf',bbox_inches='tight')

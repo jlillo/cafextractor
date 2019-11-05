@@ -17,6 +17,7 @@ import matplotlib.gridspec as gridspec # GRIDSPEC !
 from matplotlib.pyplot import cm
 import argparse
 from astropy.utils.data import get_pkg_data_filename
+from astroML.stats import sigmaG
 
 import GLOBALutils
 import CAFEutilities
@@ -55,6 +56,7 @@ def cli():
     parser.add_argument("-ampl", "--RVampl", type=float , help="Guessed RV")
     parser.add_argument("-U", "--UPDATERV", help="Update header keywords", action="store_true")
     parser.add_argument("-R", "--ROTPROF", help="Rotational profile to fit CCF", action="store_true")
+    parser.add_argument("-C", "--COORD", help="Use these coordinates to calculate BERV", default=None)
     args = parser.parse_args()
     return args
 
@@ -72,6 +74,7 @@ def get_RV(sp,inst, jdnight, sel_orders=-10,
 			myRVguess=-99.9, 
 			with_Moon = False, 
 			rot_profile=False,
+			COORD='-99.99',
 			plot_name='tmp.pdf'):
 
 
@@ -88,9 +91,13 @@ def get_RV(sp,inst, jdnight, sel_orders=-10,
 	order_offset = CS.var.order0 - 60
 	exclude_orders = np.array([27,28,30,32,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83])-order_offset#,79,80,81,82,83])
 	
- 	sel_orders = np.arange(norders-(23-order_offset))+(23-order_offset)
+ 	sel_orders = np.arange(norders-(24-order_offset))+(24-order_offset)
 	_sel_orders_list = list(sel_orders)
-	for i in exclude_orders: _sel_orders_list.remove(i)
+	for i in exclude_orders: 
+		try:
+			_sel_orders_list.remove(i)
+		except:
+			ddd = 0
 	sel_orders = np.array(_sel_orders_list)
 
 
@@ -319,6 +326,9 @@ def get_RV(sp,inst, jdnight, sel_orders=-10,
 			plt.errorbar(sel_orders[tt],RVall[tt],yerr=eRVall[tt],fmt='o',c=c,ecolor=c)#c='Dodgerblue')
 		plt.axhline(RV,ls=':',c='k')
 		plt.ylabel('RV (km/s)')
+		ymin, ymax = np.nanmedian(RVall) -5.*np.nanstd(RVall), np.nanmedian(RVall) +5.*np.nanstd(RVall)
+		if np.isfinite(ymin) & np.isfinite(ymax): plt.ylim(ymin, ymax)
+		
 		# CCF height
 		ax3 = plt.subplot(gs[1,1])
 		color=iter(cm.coolwarm_r(np.linspace(0,1,len(sel_orders))))
@@ -327,6 +337,9 @@ def get_RV(sp,inst, jdnight, sel_orders=-10,
 			plt.errorbar(sel_orders[tt],Heightall[tt],yerr=eHeightall[tt],fmt='o',c=c,ecolor=c)#c='Tomato')
 		plt.axhline(popt[0]/CCF_norm_factor,ls=':',c='k')
 		plt.ylabel('CCF height (normalized)')
+		ymin, ymax = np.nanmedian(Heightall) -5.*np.nanstd(Heightall), np.nanmedian(Heightall) +5.*np.nanstd(Heightall)
+		if np.isfinite(ymin) & np.isfinite(ymax): plt.ylim(ymin, ymax)
+
 		# CCF FWHM
 		ax4 = plt.subplot(gs[2,1])
 		color=iter(cm.coolwarm_r(np.linspace(0,1,len(sel_orders))))
@@ -335,6 +348,8 @@ def get_RV(sp,inst, jdnight, sel_orders=-10,
 			plt.errorbar(sel_orders[tt],FWHMall[tt],yerr=eFWHMall[tt],fmt='o',c=c,ecolor=c)#c='green')
 		plt.axhline(popt[2]*2.*np.sqrt(2.*np.log(2.)),ls=':',c='k')
 		plt.ylabel('FWHM (km/s)')
+		ymin, ymax = np.nanmedian(FWHMall) -5.*np.nanstd(FWHMall), np.nanmedian(FWHMall) +5.*np.nanstd(FWHMall)
+		if np.isfinite(ymin) & np.isfinite(ymax): plt.ylim(ymin, ymax)
 
 		plt.savefig(plot_name)
 		plt.close()
@@ -354,6 +369,7 @@ def recalculate_rv(path,args):
 	sp = rcafex.read_spec(path, FULL_PATH=True)
 	inst = 'CAFE'
 	jdnight = sp.head["HIERARCH CAFEX HJD"]
+	cards = np.array(sp.head.cards)[:,0]
 
 	if args.RVampl is not None:
 		myRVampl = args.RVampl
@@ -375,15 +391,33 @@ def recalculate_rv(path,args):
 	RV, eRV, popt, perr,RVdict = get_RV(sp, inst, jdnight, myRVguess=myRVguess, myRVampl=myRVampl, with_Moon = False, rot_profile= args.ROTPROF, plot_name=plotname)
 
 	# ===== BERV correction
-	BERV = sp.head['HIERARCH CAFEX BERV']
+	if args.COORD is not None:
+		_hdr = 'a'
+		coords = args.COORD
+		ra,dec = coords.split(' ')
+		BERV = CAFEutilities.get_berv(_hdr,RA=np.float(ra), DEC=np.float(dec))	
+	else:
+		BERV = sp.head['HIERARCH CAFEX BERV']
+	
 	RV += BERV
 
 	# ===== SNR-corrected RV
 	snr = sp.head["HIERARCH CAFEX SNR"]
-	corr_coeff = np.flip([5.08237278e-01, -1.08262818e-02,  5.45218903e-05])
+	corr_coeff = np.flip([5.07794635e-01, -1.03076535e-02,  4.72775655e-05])
 	poly_corr = np.poly1d(corr_coeff)
 	corr = poly_corr(snr)
 	RVcorr = RV - corr
+
+	# ===== ThAr-change RV correction
+	# Read ThAr lamp changes for RV correction
+	thar_change_path = CS.RefFrames
+	t = np.genfromtxt(thar_change_path+'/ThAr_LampChanges.dat',dtype=None)
+	thar_jdstart, thar_jdend, ThAr_corr = t['f1'], t['f2'], t['f5']
+	this_thar = np.where((thar_jdstart < jdnight) & (thar_jdend > jdnight))[0]
+	tharcorr = ThAr_corr[this_thar]*1.e-3
+
+	RVcorrThAr = RVcorr - tharcorr[0]
+
 
 	print RVcorr,eRV
 
@@ -394,6 +428,8 @@ def recalculate_rv(path,args):
 		fits.setval(path, 'HIERARCH CAFEX CCF FWHM', value=popt[2]*2.*np.sqrt(2.*np.log(2.)))
 		fits.setval(path, 'HIERARCH CAFEX CCF HEIGHT', value=popt[0])
 		fits.setval(path, 'HIERARCH CAFEX RVCORR', value=RVcorr)
+		fits.setval(path, 'HIERARCH CAFEX RVCORR2', value=RVcorrThAr, comment='RV - SNRcorr - ThArcorr  [km/s]')
+		fits.setval(path, 'HIERARCH CAFEX THARCORR', value=tharcorr[0], comment='ThArcorr correction [m/s]')
 
 # ========================================================================================
 
