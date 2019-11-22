@@ -57,24 +57,6 @@ python cafex.py 190709 --root /path_to_cafextractor/examples
 
 This will create the folder /path_to_cafextractor/examples/11_REDUCED/190709 with the reduction of the science frames in the folder located in /path_to_cafextractor/examples/00_REDUCED/190709
 
-## Version control (summary)
-- v0.1	  01/2019	First release
-- v0.2	  01/2019	ThAr RV measurements changed
-- v0.3	  02/2019	New mask for science RV + fancy CCF plots
-- v0.4	  05/2019	New order geometry, new RV mask, RVCORR for SNR, new ref frames
-- v0.5	  05/2019	New RV corrections, new --root option, including CCF_FWHM in header
-- v0.6	  08/2019	Modified to reduced data from 2018
-- v0.7	  -		-
-- v0.8	  11/2019	First version publicly released  
-
-## Future improvements
-
-- Order tracing: At high S/N there is a tilt of the extracted orders. To be investigated
-- RV dependency with S/N: there is a strong dependency of RV with the S/N of the spectrum. Under investigation.
-- Order normalization: Orders #X and #Y have a very bad normalization due to the strong atmospheric absorption at those wavelengths.
-- Order merging: to be optimized
-- Create IRAF-readable reduced spectra files (also MIDAS if possible)
-
 ## Additional resources: 
 
 **RV re-computation**
@@ -92,6 +74,25 @@ The script fit2ascii_cafex.py also allows to convert the spactra into ascii file
 ```bash
 python fits2ascii_cafex.py /path_to_cafextractor/examples/11_REDUCED/190709/reduced/
 ```
+
+## Version control (summary)
+
+- v0.1	  01/2019	First release
+- v0.2	  01/2019	ThAr RV measurements changed
+- v0.3	  02/2019	New mask for science RV + fancy CCF plots
+- v0.4	  05/2019	New order geometry, new RV mask, RVCORR for SNR, new ref frames
+- v0.5	  05/2019	New RV corrections, new --root option, including CCF_FWHM in header
+- v0.6	  08/2019	Modified to reduced data from 2018
+- v0.7	  -		-
+- v0.8	  11/2019	First version publicly released  
+
+## Future improvements
+
+- Order tracing: At high S/N there is a tilt of the extracted orders. To be investigated
+- RV dependency with S/N: there is a strong dependency of RV with the S/N of the spectrum. Under investigation.
+- Order normalization: Orders #X and #Y have a very bad normalization due to the strong atmospheric absorption at those wavelengths.
+- Order merging: to be optimized
+- Create IRAF-readable reduced spectra files (also MIDAS if possible)
 
 ## Citation
 
