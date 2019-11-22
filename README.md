@@ -1,6 +1,6 @@
 # CAFExtractor: a pipeline to make a good CAFE
 
-CAFExtractor (hereafter cafex) is the observatory pipeline of the upgraded CAFE instrument (called CAFE2). This pipeline is meant to be used by the observatory every night. The purpose is that CAFE2 users can have their data reduced by the morning after the observations. The pipeline and the new upgrade of the instrument is presented in [Lillo-Box et al. (2019, MNRAS)](https://ui.adsabs.harvard.edu/abs/2019arXiv190604060L/abstract). CAFExtractor is partly based on the [CERES](https://github.com/rabrahm/ceres) pipeline [(Brahm et al., 2017)](https://ui.adsabs.harvard.edu/abs/2017PASP..129c4002B/abstract).
+CAFExtractor (hereafter cafex) is the observatory pipeline of the upgraded CAFE instrument (called CAFE2, see the instrument webpage [here](http://www.caha.es/CAHA/Instruments/CAFE/index.html)). This pipeline is meant to be used by the observatory every night. The purpose is that CAFE2 users can have their data reduced by the morning after the observations. The pipeline and the new upgrade of the instrument is presented in [Lillo-Box et al. (2019, MNRAS)](https://ui.adsabs.harvard.edu/abs/2019arXiv190604060L/abstract). CAFExtractor is partly based on the [CERES](https://github.com/rabrahm/ceres) pipeline [(Brahm et al., 2017)](https://ui.adsabs.harvard.edu/abs/2017PASP..129c4002B/abstract).
 
 Version: v0.8
 
