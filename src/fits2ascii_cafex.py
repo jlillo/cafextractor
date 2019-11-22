@@ -28,13 +28,14 @@ for file in glob.glob(path+'/*red.fits'):
 
 	w,f,ef,fnorm,order = [],[],[],[],[]
 	norders, npix = np.shape(a["WAVELENGTH"].data)
+	xmin,xmax = 250,-200 #100, -100 # 
 
 	for oo in range(norders)[::-1]:
-		w.append(a["WAVELENGTH"].data[oo,250:-200])
-		f.append(a["FLUX"].data[oo,250:-200])
-		ef.append(a["EFLUX"].data[oo,250:-200])
-		fnorm.append(a["FNORM"].data[oo,250:-200])
-		order.append(oo+np.zeros(len(a["WAVELENGTH"].data[oo,250:-200])))
+		w.append(a["WAVELENGTH"].data[oo,xmin:xmax])
+		f.append(a["FLUX"].data[oo,xmin:xmax])
+		ef.append(a["EFLUX"].data[oo,xmin:xmax])
+		fnorm.append(a["FNORM"].data[oo,xmin:xmax])
+		order.append(oo+np.zeros(len(a["WAVELENGTH"].data[oo,xmin:xmax])))
 		
 		
 	w,f,ef,fnorm,order = np.array(w),np.array(f),np.array(ef),np.array(fnorm),np.array(order)

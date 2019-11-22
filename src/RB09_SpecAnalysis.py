@@ -96,27 +96,34 @@ def merge1D(w_frames, NORMdicts, cv, frame_names):
 		fnorm  	= Ndict['fnorm']
 		efnorm 	= Ndict['efnorm']
 		before = 0
+		xmin,xmax = 200, -200 # 200,-200
 		
 		wmerge = []
 		fmerge = []
+		fmerge0 = []
 
 		for oo in np.flip(np.arange(CS.var.Nominal_Nord),0):
 			#| Check if order matches next order
-			if np.max(wave[oo,200:-200]) > np.min(wave[oo-1,200:-200]):
+			if np.max(wave[oo,xmin:xmax]) > np.min(wave[oo-1,xmin:xmax]):
 				disp = np.mean(wave[oo,1:]-wave[oo,0:-1])
-				rang = np.max(wave[oo,200:-200]) -  np.min(wave[oo,200:-200])
-				wnew = np.linspace(np.min(wave[oo,200:-200]) + before ,np.max(wave[oo,200:-200]), 2048-400)
+				rang = np.max(wave[oo,xmin:xmax]) -  np.min(wave[oo,xmin:xmax])
+				wnew = np.linspace(np.min(wave[oo,xmin:xmax]) + before ,np.max(wave[oo,xmin:xmax]), 2048-(xmin-xmax))
 					
 				fnorm[oo,234] = np.nan
-				f0tmp = np.interp(wnew, wave[oo,200:-200], fnorm[oo,200:-200]) 
-				f1tmp = np.interp(wnew, wave[oo-1,200:-200], fnorm[oo-1,200:-200], left = np.nan, right=np.nan) 
+				f0tmp = np.interp(wnew, wave[oo,xmin:xmax], fnorm[oo,xmin:xmax]) 
+				f1tmp = np.interp(wnew, wave[oo-1,xmin:xmax], fnorm[oo-1,xmin:xmax], left = np.nan, right=np.nan) 
 				wmerge.append(wnew)
+
+				f0tmp0 = np.interp(wnew, wave[oo,xmin:xmax], flux[oo,xmin:xmax]) 
+				f1tmp0 = np.interp(wnew, wave[oo-1,xmin:xmax], flux[oo-1,xmin:xmax], left = np.nan, right=np.nan) 
+
 				try:
 					fmerge.append(np.nanmean([f0tmp,f1tmp], axis=0))
+					fmerge0.append(np.nanmean([f0tmp0,f1tmp0], axis=0))
 				except:
 					_tmp = 0.
 				
-				before = np.max(wave[oo,200:-200]) - np.min(wave[oo-1,200:-200])
+				before = np.max(wave[oo,xmin:xmax]) - np.min(wave[oo-1,xmin:xmax])
 # 				if oo < 83:
 # 					plt.plot(wave[oo,200:-200], flux[oo,200:-200],c='red')
 # 					plt.plot(wave[oo-1,200:-200], flux[oo-1,200:-200],c='b')
@@ -126,17 +133,20 @@ def merge1D(w_frames, NORMdicts, cv, frame_names):
 		
 		
 			else:
-				wmerge.append(wave[oo,200:-200])
-				fmerge.append(fnorm[oo,200:-200])
+				wmerge.append(wave[oo,xmin:xmax])
+				fmerge.append(fnorm[oo,xmin:xmax])
+				fmerge0.append(flux[oo,xmin:xmax])
 
 
-		wmerge, fmerge = np.array(wmerge), np.array(fmerge)
+		wmerge, fmerge, fmerge0 = np.array(wmerge), np.array(fmerge), np.array(fmerge0)
 
 		wmerge = np.concatenate(wmerge, axis=0)
 		fmerge = np.concatenate(fmerge, axis=0)
+		fmerge0 = np.concatenate(fmerge0, axis=0)
 				
-		MERGEdict =  { 'fmerge':fmerge,
-					'wmerge':wmerge,
+		MERGEdict =  { 'wmerge':wmerge,
+					'fmerge':fmerge,
+					'fmerge0':fmerge0,
 					}
 		MERGEdicts.append(MERGEdict)
 

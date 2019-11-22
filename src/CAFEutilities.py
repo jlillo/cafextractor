@@ -241,9 +241,9 @@ def save_final_file(raw_file, x_matrix, cv, type, myHeader=False, Header=""):
 			hdr = Header
 		
 	# ===== Read wavelength file or wavelength matrix
-	flux  = fits.ImageHDU(data=x_matrix[1,:,:], name="FLUX")
-	eflux = fits.ImageHDU(data=x_matrix[2,:,:], name="eFLUX")
-	wave  = fits.ImageHDU(data=x_matrix[3,:,:], name="WAVELENGTH")
+	flux  = fits.ImageHDU(data=np.transpose(x_matrix[1,:,:]), name="FLUX")
+	eflux = fits.ImageHDU(data=np.transpose(x_matrix[2,:,:]), name="eFLUX")
+	wave  = fits.ImageHDU(data=np.transpose(x_matrix[3,:,:]), name="WAVELENGTH")
 
 	# ===== Add BERV & HJD to header
 	if type == "SCI":
@@ -261,12 +261,13 @@ def save_final_file(raw_file, x_matrix, cv, type, myHeader=False, Header=""):
 		primary_hdu = fits.PrimaryHDU()
 
 	# Data
-	hdul = fits.HDUList([primary_hdu, flux, wave, eflux])
+	hdul = fits.HDUList([primary_hdu, wave, flux, eflux])
 
 	# Filename
 	rawfilename, file_extension = os.path.splitext(raw_file)
-	filename = rawfilename+'_red.fits'
-	hdul.writeto(cv.redfiles_dir+filename, overwrite=True)
+	filename = rawfilename+'_2D.fits'
+	#hdul.writeto(cv.redfiles_dir+filename, overwrite=True)
+	hdul.writeto(cv.aux_dir+'WCX_'+filename, overwrite=True)
 
 
 

@@ -282,10 +282,11 @@ def save_SciFrames(raw_names, w_frames, WCdicts, RVdicts, NORMdicts, MERGEdicts,
 		eflux_norm = fits.ImageHDU(data=NORMdict["efnorm"], name="eFNORM")
 		wave_merge = fits.ImageHDU(data=MERGEdict["wmerge"], name="WMERGE1D")
 		flux_merge  = fits.ImageHDU(data=MERGEdict["fmerge"], name="FMERGE1D")
+		flux_merge0 = fits.ImageHDU(data=MERGEdict["fmerge0"], name="FMERGE1D0")
 
 		# ===== Write file
 		# Data
-		hdul = fits.HDUList([primary_hdu, flux, wave, eflux, flux_norm, eflux_norm, wave_merge, flux_merge, dvel, CCF, eCCF])
+		hdul = fits.HDUList([primary_hdu, flux, wave, eflux, flux_norm, eflux_norm, wave_merge, flux_merge, dvel, CCF, eCCF, flux_merge0])
 
 		# Filename
 		rawfilename, file_extension = os.path.splitext(raw_names[i])

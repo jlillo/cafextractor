@@ -139,7 +139,6 @@ def ClassifyFiles(cv):
 			obj = obj.replace("[std]","")
 			obj = obj.replace(".","_")
 			objname.append(obj)
-			print file
 			ra     	= CAFEutilities.ra_from_sec(head['RA'])
 			dec  	= CAFEutilities.ra_from_sec(head['DEC'])
 			airmass	= np.float(head['AIRMASS'])

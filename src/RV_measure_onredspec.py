@@ -392,7 +392,7 @@ def recalculate_rv(path,args):
 
 	# ===== BERV correction
 	if args.COORD is not None:
-		_hdr = 'a'
+		_hdr = sp.header #'a'
 		coords = args.COORD
 		ra,dec = coords.split(' ')
 		BERV = CAFEutilities.get_berv(_hdr,RA=np.float(ra), DEC=np.float(dec))	

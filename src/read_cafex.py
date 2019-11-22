@@ -48,25 +48,32 @@ class store_results:
 	self.telfocus_scale	= np.transpose(telfocus_scale)	
 
 class spectrum(file):
-  def __init__(self, file, FULL_PATH=False):
-	if FULL_PATH:
-		mypath = file
-	else:
-		wpath = os.getcwd()
-		mypath = wpath+'/'+file
-	a = fits.open(mypath)
+  	def __init__(self, file, FULL_PATH=False):
+		if FULL_PATH:
+			mypath = file
+		else:
+			wpath = os.getcwd()
+			mypath = wpath+'/'+file
+		a = fits.open(mypath)
 		
-	self.wave	= a[2].data
-	self.flux	= a[1].data	
-	self.eflux	= a[3].data
-	self.fnorm	= a[4].data
-	self.efnorm	= a[5].data	
-	self.wmerge	= a[6].data
-	self.fmerge	= a[7].data
-	self.dvel	= a[8].data
-	self.ccf	= a[9].data
-	self.eccf	= a[10].data
-	self.head	= a[0].header
+		self.wave	= a[2].data
+		self.flux	= a[1].data	
+		self.eflux	= a[3].data
+		self.fnorm	= a[4].data
+		self.efnorm	= a[5].data	
+		self.wmerge	= a[6].data
+		self.fmerge	= a[7].data
+		self.fmerge0= a[11].data
+		self.dvel	= a[8].data
+		self.ccf	= a[9].data
+		self.eccf	= a[10].data
+		self.head	= a[0].header
+	
+	def ploto(order):
+		plt.plot(self.wave[order,:],self.flux[order,:])
+		plt.show()
+		plt.close()
+	
 
 def read_obj(obj,MYPATH=None):
 	tmp = store_results(obj, MYPATH=MYPATH)
@@ -75,3 +82,7 @@ def read_obj(obj,MYPATH=None):
 def read_spec(file,FULL_PATH=False):
 	tmp = spectrum(file,FULL_PATH=FULL_PATH)
 	return tmp
+	
+
+	
+
