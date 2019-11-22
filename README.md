@@ -1,6 +1,6 @@
 # CAFExtractor: a pipeline to make a good CAFE
 
-CAFExtractor (hereafter cafex) is the observatory pipeline of the upgraded CAFE instrument (called CAFE2). This pipeline is meant to be used by the observatory every night. The purpose is that CAFE2 users can have their data reduced by the morning after the observations. CAFExtractor is partly bsaed on the CERES pipeline (Brahm et al., 2017). For additional information on CERES, please visit https://github.com/rabrahm/ceres.
+CAFExtractor (hereafter cafex) is the observatory pipeline of the upgraded CAFE instrument (called CAFE2). This pipeline is meant to be used by the observatory every night. The purpose is that CAFE2 users can have their data reduced by the morning after the observations. The pipeline and the new upgrade of the instrument is presented in [Lillo-Box et al. (2019, MNRAS)](https://ui.adsabs.harvard.edu/abs/2019arXiv190604060L/abstract). CAFExtractor is partly bsaed on the [CERES](https://github.com/rabrahm/ceres) pipeline [(Brahm et al., 2017)](https://ui.adsabs.harvard.edu/abs/2017PASP..129c4002B/abstract). For additional information on CERES, please visit https://github.com/rabrahm/ceres.
 
 Version: v0.8
 
@@ -92,7 +92,7 @@ python fits2ascii_cafex.py /path_to_cafextractor/examples/11_REDUCED/190709/redu
 
 ## Citation
 
-If you make use of the products of the CAFExtractor pipeline please make sure to cinclude the following reperences:
+If you make use of the products of the CAFExtractor pipeline **please make sure to cinclude the following reperences**:
 - Lillo-Box et al., 2019, MNRAS (https://ui.adsabs.harvard.edu/abs/2019arXiv190604060L/abstract)
 - Brahm et al., 2017, PASP, 129, 973 (https://ui.adsabs.harvard.edu/abs/2017PASP..129c4002B/abstract)
 A suggested sentence to include both references is as follows: "The data were reduced using the CAFExtractor pipeline \citep{lillo-box2019}, partly based on the CERES algorithms \citep{brahm2016}"
