@@ -63,7 +63,7 @@ class spectrum(file):
 		self.efnorm	= a[5].data	
 		self.wmerge	= a[6].data
 		self.fmerge	= a[7].data
-		self.fmerge0= a[11].data
+		#self.fmerge0= a[11].data
 		self.dvel	= a[8].data
 		self.ccf	= a[9].data
 		self.eccf	= a[10].data
