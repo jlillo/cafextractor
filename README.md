@@ -75,6 +75,7 @@ python fits2ascii_cafex.py /path_to_cafextractor/examples/11_REDUCED/190709/redu
 ```
 
 **Reading cafeX spectra**
+
 The script read_cafex.py allows you to easily read the resulting extracted spectra and header from Python. Just do:
 
 ```bash
