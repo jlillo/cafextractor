@@ -1,3 +1,4 @@
+
 # CAFExtractor: a pipeline to make a good CAFE
 
 CAFExtractor (hereafter cafex) is the observatory pipeline of the upgraded CAFE instrument (called CAFE2, see the instrument webpage [here](http://www.caha.es/CAHA/Instruments/CAFE/index.html)). This pipeline is meant to be used by the observatory every night. The purpose is that CAFE2 users can have their data reduced by the morning after the observations. The pipeline and the new upgrade of the instrument is presented in [Lillo-Box et al. (2019, MNRAS)](https://ui.adsabs.harvard.edu/abs/2019arXiv190604060L/abstract). CAFExtractor is partly based on the [CERES](https://github.com/rabrahm/ceres) pipeline [(Brahm et al., 2017)](https://ui.adsabs.harvard.edu/abs/2017PASP..129c4002B/abstract).
@@ -18,9 +19,7 @@ Then make sure you tell you computer where the pipeline is:
 ```tcsh
 setenv PYTHONPATH ${PYTHONPATH}:/path_to_folder/cafextractor/src
 ```
-cafeX does not need anything else to work but some models from the CERES pipeline require that you compile come fortran routines. To that end, please follow the instructions properly described in the Installation section of the CERES pipeline [here](https://github.com/rabrahm/ceres#installation).
-
-If you have issues related to the 
+cafeX does not need anything else to work but some models from the CERES pipeline require that you compile some fortran routines. To that end, please follow the instructions properly described in the Installation section of the CERES pipeline [here](https://github.com/rabrahm/ceres#installation).
 
 Before starting, make sure you have the following python packages installed:
 - python 2.7, numpy, scipy, pyfits, astropy, termcolor, ntpath, argparse
@@ -75,6 +74,34 @@ The script fit2ascii_cafex.py also allows to convert the spactra into ascii file
 python fits2ascii_cafex.py /path_to_cafextractor/examples/11_REDUCED/190709/reduced/
 ```
 
+**Reading cafeX spectra**
+The script read_cafex.py allows you to easily read the resulting extracted spectra and header from Python. Just do:
+
+```bash
+import read_cafex as rcafex
+spec = rcafex.spec('/path_to_cafextractor/examples/11_REDUCED/190709/reduced/HD109358__190709_0052_red.fits')
+```
+
+and you will get an object called "spec" that will contain the spec.wave, spec.flux, spec.eflux arrays that you can plot. For instance, if you would like to plot the 23rd order, just do:
+
+```bash
+plt.plot(spec.wave[23,:], spec.flux[23,:])
+plt.show()
+```
+
+Another option is to load a bunge of keyword parameters from the header of a set of files from the same object. A good example of why doing this is, for instance, if you have 20 spectra of a particular target and you want to see the RVs obtained on all spectra at once. Then just do:
+
+```bash
+import read_cafex as rcafex
+obj = rcafex.obj('HD109358', MY_PATH='/path_to_cafextractor/examples/11_REDUCED/190709/reduced/')
+```
+
+The object "obj" will then contain arrays like obj.rv or obj.hjd containing the RV and Julian Date (among others) values for all reduced files in the MY_PATH folder. Then you can just do:
+
+```bash
+plt.errorbar(obj.hjd,obj.rvcorr,yerr=obj.erv,fmt='o')
+```
+
 ## Version control (summary)
 
 - v0.1	  01/2019	First release
@@ -97,11 +124,11 @@ python fits2ascii_cafex.py /path_to_cafextractor/examples/11_REDUCED/190709/redu
 ## Citation
 
 If you make use of the products of the CAFExtractor pipeline **please make sure to include the following reperences**:
-- Lillo-Box et al., 2019, MNRAS (https://ui.adsabs.harvard.edu/abs/2019arXiv190604060L/abstract)
+- Lillo-Box et al., 2020, MNRAS, 491, 4496 (https://ui.adsabs.harvard.edu/abs/2019arXiv190604060L/abstract)
 - Brahm et al., 2017, PASP, 129, 973 (https://ui.adsabs.harvard.edu/abs/2017PASP..129c4002B/abstract)
 
 A suggested sentence to include both references is as follows: "The data were reduced using the CAFExtractor pipeline \citep{lillo-box2019}, partly based on the CERES algorithms \citep{brahm2016}"
 
 ## Ownership
 
-These tools have been developed by Dr. Jorge Lillo-Box. While the routines are not public and in the absence of any paper to be cited, any data reduced with the pipeline must contact the pipeline owner (jlillo@cab.inta-csic.es or jlillobox@gmail.com) to ask for permission and discuss about usage conditions. 
+These tools have been developed by Dr. Jorge Lillo-Box. For any questions related to this pipeline please contact me at jlillo at cab.inta-csic.es . 
