@@ -5,6 +5,24 @@ CAFExtractor (hereafter cafex) is the observatory pipeline of the upgraded CAFE 
 
 Version: v0.8
 
+## Prerequisites:
+
+Before starting, make sure you have the following python packages installed:
+
+```
+python 2.7, numpy, scipy, pyfits, astropy, termcolor, ntpath, argparse
+```
+
+And:
+```
+apt install python-pip python-pycurl libgsl-dev
+```
+
+Some packages require specific versions. In particular:
+```pip install --user pandas==0.19.2 scipy==1.17.1 statsmodels==0.6.1```
+
+
+
 ## Installation
 
 Just clone this directory to a local path like:
@@ -19,11 +37,16 @@ Then make sure you tell you computer where the pipeline is:
 ```tcsh
 setenv PYTHONPATH ${PYTHONPATH}:/path_to_folder/cafextractor/src
 ```
-cafeX does not need anything else to work but some models from the CERES pipeline require that you compile some fortran routines. To that end, please follow the instructions properly described in the Installation section of the CERES pipeline [here](https://github.com/rabrahm/ceres#installation).
+cafeX does not need anything else to work but some modules from the CERES pipeline require that you compile some fortran routines. To that end, please follow the instructions properly described in the Installation section of the CERES pipeline [here](https://github.com/rabrahm/ceres#installation). Basically, you have to foolow these steps:
 
-Before starting, make sure you have the following python packages installed:
-- python 2.7, numpy, scipy, pyfits, astropy, termcolor, ntpath, argparse
+```
+cd cafextractor/utils/OptExtract/
+python setup.py build
+mv build/lib.linux-x86_64-2.7/Marsh.so .
 
+cd cafextractor/utils/CCF
+./Proceso_f2py
+```
 
 ## Usage
 
@@ -133,3 +156,6 @@ A suggested sentence to include both references is as follows: "The data were re
 ## Ownership
 
 These tools have been developed by Dr. Jorge Lillo-Box. For any questions related to this pipeline please contact me at jlillo at cab.inta-csic.es . 
+
+## Contributors and acknowledgements
+I thank here the Calar Alto personnel for their great and outstanding support when preparing this pipeline. Also thanks to Arto Jarvinen (AIP) for helping with the installation details and feedback on the installation.
