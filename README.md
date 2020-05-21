@@ -19,6 +19,7 @@ apt install python-pip python-pycurl libgsl-dev
 ```
 
 Some packages require specific versions. In particular:
+
 ```pip install --user pandas==0.19.2 scipy==1.17.1 statsmodels==0.6.1```
 
 
